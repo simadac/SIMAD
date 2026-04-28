@@ -1,0 +1,2508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="SIMAD - Painel do Morador | Monitoramento e gestão de ocorrências">
+    <meta name="theme-color" content="#6B46C1">
+    <title>SIMAD | Painel do Morador</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet para mapas -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    
+    <style>
+        /* ============================================
+           VARIÁVEIS DE DESIGN
+        ============================================ */
+        :root {
+            --primary-purple: #6B46C1;
+            --primary-purple-dark: #553C9A;
+            --primary-purple-light: #E9E0F9;
+            --primary-blue: #2B6CB0;
+            --primary-blue-dark: #1E4C7A;
+            --primary-orange: #DD6B20;
+            --primary-orange-dark: #C35F1C;
+            
+            --gray-50: #F7FAFC;
+            --gray-100: #EDF2F7;
+            --gray-200: #E2E8F0;
+            --gray-300: #CBD5E0;
+            --gray-400: #A0AEC0;
+            --gray-500: #718096;
+            --gray-600: #4A5568;
+            --gray-700: #2D3748;
+            --gray-800: #1A202C;
+            --gray-900: #171923;
+            
+            --status-success: #38A169;
+            --status-success-bg: #F0FFF4;
+            --status-warning: #DD6B20;
+            --status-warning-bg: #FFFAF0;
+            --status-danger: #E53E3E;
+            --status-danger-bg: #FFF5F5;
+            --status-info: #3182CE;
+            --status-info-bg: #EBF8FF;
+            --status-pending: #D69E2E;
+            --status-pending-bg: #FFFFF0;
+            
+            --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.10);
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+            --radius-2xl: 24px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        *:focus-visible {
+            outline: 2px solid var(--primary-purple);
+            outline-offset: 2px;
+            border-radius: var(--radius-sm);
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+        
+        /* ============================================
+           Z-INDEX HIERARQUIA CORRETA
+        ============================================ */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--gray-200);
+            z-index: 1000;
+            padding: 0 24px;
+        }
+        
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .logo-area {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-purple);
+            letter-spacing: -0.5px;
+        }
+        
+        .slogan {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .btn-simad {
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-family: inherit;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-simad-primary {
+            background: var(--primary-orange);
+            color: white;
+        }
+        
+        .btn-simad-primary:hover {
+            background: var(--primary-orange-dark);
+            transform: translateY(-1px);
+        }
+        
+        .btn-simad-danger {
+            background: var(--status-danger);
+            color: white;
+        }
+        
+        .btn-simad-danger:hover {
+            background: #C53030;
+            transform: translateY(-1px);
+        }
+        
+        .btn-simad-outline {
+            background: transparent;
+            border: 1.5px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+        
+        .btn-simad-outline:hover {
+            border-color: var(--primary-purple);
+            color: var(--primary-purple);
+            background: transparent;
+        }
+        
+        .btn-simad-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+        
+        .btn-simad-secondary:hover {
+            background: var(--gray-200);
+        }
+        
+        .user-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 40px;
+            transition: background var(--transition-fast);
+        }
+        
+        .user-menu:hover {
+            background: var(--gray-100);
+        }
+        
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-purple);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-200);
+            min-width: 180px;
+            overflow: hidden;
+            z-index: 1001;
+            display: none;
+        }
+        
+        .user-dropdown.active {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .dropdown-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+        
+        .dropdown-item:hover {
+            background: var(--gray-100);
+        }
+        
+        .dropdown-item:first-child {
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .offline-banner {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: var(--status-warning);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 998;
+            display: none;
+        }
+        
+        .offline-banner.active {
+            display: block;
+        }
+        
+        /* ============================================
+           NAVEGAÇÃO POR ABAS
+        ============================================ */
+        .nav-tabs {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            z-index: 999;
+            padding: 0 24px;
+        }
+        
+        .tabs-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 32px;
+        }
+        
+        .tab {
+            padding: 16px 4px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-500);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all var(--transition-fast);
+        }
+        
+        .tab:hover {
+            color: var(--primary-purple);
+        }
+        
+        .tab.active {
+            color: var(--primary-purple);
+            border-bottom-color: var(--primary-purple);
+        }
+        
+        /* ============================================
+           CONTEÚDO PRINCIPAL
+        ============================================ */
+        .main-content {
+            padding-top: 138px;
+            padding-left: 24px;
+            padding-right: 24px;
+            padding-bottom: 48px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ============================================
+           CARDS E KPI
+        ============================================ */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 24px;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-fast);
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .kpi-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--primary-purple);
+            line-height: 1.2;
+        }
+        
+        .kpi-label {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        /* ============================================
+           MAPAS
+        ============================================ */
+        .map-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+        
+        .map-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .map-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+        
+        .map-container {
+            height: 450px;
+            width: 100%;
+            background: var(--gray-100);
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Forçar controles do Leaflet a ficarem abaixo do header */
+        .leaflet-top,
+        .leaflet-bottom {
+            z-index: 500 !important;
+        }
+        
+        .leaflet-control-zoom {
+            z-index: 500 !important;
+        }
+        
+        .leaflet-popup {
+            z-index: 800 !important;
+        }
+        
+        .leaflet-map-pane {
+            z-index: 1;
+        }
+        
+        .leaflet-overlay-pane {
+            z-index: 2;
+        }
+        
+        .leaflet-marker-pane {
+            z-index: 3;
+        }
+        
+        .leaflet-tooltip-pane {
+            z-index: 4;
+        }
+        
+        @media (min-width: 1400px) {
+            .map-container { height: 550px; }
+        }
+        
+        @media (max-width: 1024px) {
+            .map-container { height: 380px; }
+        }
+        
+        @media (max-width: 768px) {
+            .map-container { height: 320px; }
+        }
+        
+        @media (min-width: 1920px) {
+            .map-container { height: 650px; }
+        }
+        
+        #homeMap, #monitorMap {
+            height: 100%;
+            width: 100%;
+            min-height: 300px;
+        }
+        
+        /* ============================================
+           OCORRÊNCIAS
+        ============================================ */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+        
+        .section-link {
+            font-size: 13px;
+            color: var(--primary-purple);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .section-link:hover {
+            text-decoration: underline;
+        }
+        
+        .filters-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: var(--gray-100);
+            padding: 12px 20px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            min-width: 130px;
+        }
+        
+        .ocorrencias-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .ocorrencia-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        
+        .ocorrencia-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .ocorrencia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .ocorrencia-info {
+            flex: 1;
+        }
+        
+        .ocorrencia-titulo {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+        
+        .ocorrencia-endereco {
+            font-size: 12px;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .badge-pendente { background: var(--status-pending-bg); color: var(--status-pending); }
+        .badge-em_andamento { background: var(--status-info-bg); color: var(--status-info); }
+        .badge-aprovado { background: var(--status-success-bg); color: var(--status-success); }
+        .badge-resolvido { background: var(--status-success-bg); color: var(--status-success); }
+        .badge-rejeitado { background: var(--status-danger-bg); color: var(--status-danger); }
+        
+        .ocorrencia-descricao {
+            font-size: 13px;
+            color: var(--gray-600);
+            line-height: 1.5;
+            margin: 12px 0;
+        }
+        
+        .ocorrencia-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--gray-100);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .ocorrencia-data {
+            font-size: 11px;
+            color: var(--gray-400);
+        }
+        
+        .agente-status {
+            font-size: 12px;
+            background: var(--gray-100);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            margin-top: 12px;
+            color: var(--gray-700);
+            border-left: 3px solid var(--primary-purple);
+        }
+        
+        .tempo-resposta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: var(--gray-100);
+            margin-bottom: 8px;
+        }
+        
+        .fotos-preview {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        
+        .foto-miniatura {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            border: 1px solid var(--gray-200);
+        }
+        
+        /* ============================================
+           FORMULÁRIOS
+        ============================================ */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray-700);
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all var(--transition-fast);
+            background: white;
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .cep-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .cep-row .form-input {
+            flex: 1;
+        }
+        
+        /* Upload */
+        .upload-area {
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-top: 12px;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-purple);
+            background: var(--gray-50);
+        }
+        
+        .upload-area.drag-over {
+            border-color: var(--primary-purple);
+            background: var(--primary-purple-light);
+        }
+        
+        .preview-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        
+        .preview-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        
+        .preview-img {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .remove-foto {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--status-danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        
+        .remove-foto:hover {
+            background: #C53030;
+            transform: scale(1.1);
+        }
+        
+        /* ============================================
+           MODAL
+        ============================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: var(--radius-2xl);
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: modalSlideUp 0.3s ease;
+        }
+        
+        .modal::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .modal::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border-radius: 10px;
+            margin: 8px 0;
+        }
+        
+        .modal::-webkit-scrollbar-thumb {
+            background: var(--gray-400);
+            border-radius: 10px;
+        }
+        
+        .modal::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-purple);
+        }
+        
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-footer {
+            padding: 16px 24px 24px;
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid var(--gray-200);
+            position: sticky;
+            bottom: 0;
+            background: white;
+        }
+        
+        /* ============================================
+           AVALIAÇÃO
+        ============================================ */
+        .avaliacao {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 16px 0;
+        }
+        
+        .star {
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--gray-300);
+            transition: color var(--transition-fast);
+        }
+        
+        .star.active {
+            color: #FBBF24;
+        }
+        
+        .star:hover {
+            color: #F59E0B;
+            transform: scale(1.1);
+        }
+        
+        /* ============================================
+           LOADING
+        ============================================ */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2001;
+            backdrop-filter: blur(4px);
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Botão Voltar ao Topo */
+        .btn-back-to-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-fast);
+            z-index: 1001;
+            font-size: 20px;
+        }
+        
+        .btn-back-to-top:hover {
+            background: var(--primary-purple-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-back-to-top.visible {
+            display: flex;
+        }
+        
+        /* Status de Conexão */
+        .connection-status {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .connection-status.online {
+            color: var(--status-success);
+        }
+        
+        .connection-status.offline {
+            color: var(--status-warning);
+        }
+        
+        .connection-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        /* Progresso */
+        .progress-indicator {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-step {
+            flex: 1;
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            transition: background var(--transition-fast);
+        }
+        
+        .progress-step.active {
+            background: var(--primary-purple);
+        }
+        
+        .progress-step.completed {
+            background: var(--status-success);
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: white;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2002;
+            animation: slideInRight 0.3s ease;
+            border-left: 3px solid var(--status-success);
+        }
+        
+        .toast.error { border-left-color: var(--status-danger); }
+        .toast.warning { border-left-color: var(--status-warning); }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        /* ============================================
+           RESPONSIVIDADE
+        ============================================ */
+        @media (max-width: 768px) {
+            .header-container { height: 60px; }
+            .slogan { display: none; }
+            .nav-tabs { top: 60px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+            .tabs-container { gap: 20px; }
+            .main-content { padding-top: 128px; padding-left: 16px; padding-right: 16px; }
+            .kpi-grid { grid-template-columns: 1fr; gap: 12px; }
+            .kpi-card { padding: 18px; }
+            .kpi-value { font-size: 28px; }
+            .user-name { display: none; }
+            .filters-container { width: 100%; flex-direction: column; }
+            .filter-group { justify-content: space-between; }
+            .filter-select { flex: 1; }
+            .cep-row { flex-direction: column; }
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .btn-simad-primary span:last-child, .btn-simad-danger span:last-child { display: none; }
+            .connection-status { bottom: 80px; }
+            .btn-back-to-top { bottom: 80px; }
+        }
+
+            .footer {
+            background: var(--gray-900);
+            color: var(--gray-400);
+            padding: 40px 24px 24px;
+            margin-top: 60px;
+            border-top: 1px solid var(--gray-800);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-bottom: 32px;
+        }
+
+        .footer-logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .footer-description {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--gray-500);
+        }
+
+        .footer-col h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col li {
+            margin-bottom: 8px;
+        }
+
+        .footer-col a {
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color var(--transition-fast);
+        }
+
+        .footer-col a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-800);
+            font-size: 12px;
+        }
+
+        .footer-bottom .slogan {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        @media (max-width: 768px) {
+            .footer {
+                padding: 32px 20px 20px;
+                margin-top: 40px;
+            }
+            
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                text-align: center;
+            }
+            
+            .footer-col h4 {
+                margin-bottom: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo { font-size: 18px; }
+            .btn-simad-primary, .btn-simad-danger { padding: 8px 14px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Offline Banner -->
+    <div class="offline-banner" id="offlineBanner">
+        Você está offline. As ocorrências serão salvas localmente e enviadas quando a conexão for restaurada.
+    </div>
+    
+    <!-- Header Fixo -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-area">
+                <span class="logo">SIMAD</span>
+                <span class="slogan">Porque segundos salvam vidas</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-simad btn-simad-danger" onclick="ligarEmergencia()">
+                    <span>Emergência 199</span>
+                </button>
+                <button class="btn-simad btn-simad-primary" onclick="openNewOccurrenceModal()">
+                    <span>+</span> <span>Nova ocorrência</span>
+                </button>
+                <div class="user-menu" id="userMenu">
+                    <span class="user-name" id="userName"></span>
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-item" onclick="abrirPerfil()">
+                            <span>👤</span> Meu Perfil
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item" onclick="logout()">
+                            <span>🚪</span> Sair
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Navegação por Abas -->
+    <nav class="nav-tabs">
+        <div class="tabs-container">
+            <div class="tab active" data-page="home" onclick="switchPage('home')">Visão geral</div>
+            <div class="tab" data-page="monitoramento" onclick="switchPage('monitoramento')">Monitoramento</div>
+            <div class="tab" data-page="ocorrencias" onclick="switchPage('ocorrencias')">Minhas ocorrências</div>
+        </div>
+    </nav>
+    
+    <!-- Conteúdo Principal -->
+    <main class="main-content" id="mainContent"></main>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <!-- Modal de Confirmação -->
+    <div class="modal-overlay" id="confirmModal" style="display: none;">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirmar ação</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" id="confirmCancelBtn">Cancelar</button>
+                <button class="btn-simad btn-simad-primary" id="confirmOkBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Nova Ocorrência -->
+    <div class="modal-overlay" id="newOccurrenceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Registrar ocorrência</h2>
+            </div>
+            <div class="modal-body">
+                <div class="progress-indicator">
+                    <div class="progress-step active" id="step1"></div>
+                    <div class="progress-step" id="step2"></div>
+                    <div class="progress-step" id="step3"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Título</label>
+                    <input type="text" id="occTitulo" class="form-input" placeholder="Ex: Queda de árvore na Rua Itália">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descrição</label>
+                    <textarea id="occDescricao" class="form-textarea" placeholder="Descreva detalhadamente o ocorrido... (mínimo 20 caracteres)"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">CEP (opcional)</label>
+                    <div class="cep-row">
+                        <input type="text" id="occCep" class="form-input" placeholder="00000-000">
+                        <button type="button" class="btn-simad btn-simad-outline" onclick="buscarEnderecoPorCep()">Buscar</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Endereço</label>
+                    <input type="text" id="occEndereco" class="form-input" placeholder="Rua, número, bairro">
+                    <button type="button" class="btn-simad btn-simad-outline" style="margin-top: 8px; width: 100%;" onclick="usarLocalizacaoAtual()">
+                        Usar minha localização atual
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Urgência</label>
+                    <select id="occUrgencia" class="form-select">
+                        <option value="baixo">Baixo</option>
+                        <option value="medio" selected>Médio</option>
+                        <option value="alto">Alto</option>
+                        <option value="critico">Crítico</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Fotos (opcional)</label>
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fotoInput').click()">
+                        <span>Clique ou arraste fotos aqui</span>
+                        <small style="display: block; font-size: 11px; margin-top: 4px;">Formatos: JPG, PNG (máx 5MB por foto)</small>
+                    </div>
+                    <input type="file" id="fotoInput" multiple accept="image/jpeg,image/png" style="display: none;" onchange="previewFotos(this.files)">
+                    <div class="preview-container" id="previewContainer"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" onclick="closeModal('newOccurrenceModal')">Cancelar</button>
+                <button class="btn-simad btn-simad-primary" onclick="confirmarEnvioOcorrencia()">Enviar ocorrência</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Detalhes da Ocorrência -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="detailTitulo"></h2>
+            </div>
+            <div class="modal-body" id="detailConteudo"></div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" onclick="closeModal('detailModal')">Fechar</button>
+                <button class="btn-simad btn-simad-outline" onclick="compartilharOcorrencia()">Compartilhar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Avaliação -->
+    <div class="modal-overlay" id="avaliacaoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Avaliar atendimento</h2>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px; text-align: center;">Como você avalia o atendimento da Defesa Civil para esta ocorrência?</p>
+                <div class="avaliacao" id="avaliacaoStars">
+                    <span class="star" data-value="1">★</span>
+                    <span class="star" data-value="2">★</span>
+                    <span class="star" data-value="3">★</span>
+                    <span class="star" data-value="4">★</span>
+                    <span class="star" data-value="5">★</span>
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label class="form-label">Comentário (opcional)</label>
+                    <textarea id="avaliacaoComentario" class="form-textarea" rows="3" placeholder="Deixe seu feedback..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" onclick="closeModal('avaliacaoModal')">Pular</button>
+                <button class="btn-simad btn-simad-primary" onclick="enviarAvaliacao()">Enviar avaliação</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Perfil do Morador -->
+    <div class="modal-overlay" id="perfilModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Meu Perfil</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nome completo</label>
+                    <input type="text" id="perfilNome" class="form-input" readonly disabled style="background: var(--gray-100); cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">E-mail</label>
+                    <input type="email" id="perfilEmail" class="form-input" readonly disabled style="background: var(--gray-100); cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefone</label>
+                    <input type="tel" id="perfilTelefone" class="form-input" placeholder="(11) 99999-9999">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Endereço</label>
+                    <input type="text" id="perfilEndereco" class="form-input" placeholder="Rua, número, bairro">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">CEP</label>
+                    <div class="cep-row">
+                        <input type="text" id="perfilCep" class="form-input" placeholder="00000-000">
+                        <button type="button" class="btn-simad btn-simad-outline" onclick="buscarEnderecoPorCepPerfil()">Buscar</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bairro</label>
+                    <input type="text" id="perfilBairro" class="form-input" placeholder="Seu bairro">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nova senha (opcional)</label>
+                    <input type="password" id="perfilNovaSenha" class="form-input" placeholder="Deixe em branco para manter a atual">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirmar nova senha</label>
+                    <input type="password" id="perfilConfirmarSenha" class="form-input" placeholder="Digite a nova senha novamente">
+                </div>
+                <div style="background: var(--gray-100); padding: 12px; border-radius: var(--radius-md); margin-top: 8px;">
+                    <small style="color: var(--gray-600);">Os campos em cinza não podem ser alterados. Entre em contato com o suporte para alterar e-mail ou nome.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" onclick="closeModal('perfilModal')">Cancelar</button>
+                <button class="btn-simad btn-simad-primary" onclick="salvarPerfil()">Salvar alterações</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================
+        // DADOS MOCKADOS
+        // ============================================
+        let currentUser = null;
+        let fotosTemp = [];
+        let currentDetailOccurrence = null;
+        let avaliacaoOcorrenciaId = null;
+        let selectedAvaliacao = 0;
+        
+        let homeMap = null;
+        let monitorMap = null;
+        
+        const regioesResposta = {
+            'Centro': { tempo: '15-30', fator: 1 },
+            'Jardim Brasília': { tempo: '20-40', fator: 1.2 },
+            'Botujuru': { tempo: '30-60', fator: 1.5 },
+            'Santa Maria': { tempo: '25-45', fator: 1.3 },
+            'Vila Nova': { tempo: '15-30', fator: 1 },
+            'Industrial': { tempo: '10-25', fator: 0.8 },
+            'Jardim Paulista': { tempo: '20-35', fator: 1.1 },
+            'Morro Grande': { tempo: '35-70', fator: 1.8 }
+        };
+        
+        let usuarios = [
+            { id: 1, nome: "João Silva", email: "joao@email.com", senha: "123456", telefone: "(11) 99999-9999", endereco: "Rua das Flores, 123", cep: "12345-678", bairro: "Centro", tipo: "morador" },
+            { id: 2, nome: "Maria Santos", email: "maria@email.com", senha: "123456", telefone: "(11) 98888-8888", endereco: "Av. Principal, 456", cep: "87654-321", bairro: "Jardim Brasília", tipo: "morador" },
+            { id: 3, nome: "Carlos Pereira", email: "agente@defesacivil.com", senha: "admin123", tipo: "agente", cargo: "Coordenador" }
+        ];
+        
+        let ocorrencias = [
+            { id: 1, titulo: "Queda de árvore", descricao: "Árvore de grande porte caída sobre a fiação elétrica, bloqueando completamente a rua.", endereco: "Rua Itália, 34 - Centro", bairro: "Centro", status: "pendente", urgencia: "alto", data: "2024-03-10T10:30:00", moradorId: 1, agenteStatus: null, fotos: [], avaliacao: null, lat: -23.2066, lng: -46.7721 },
+            { id: 2, titulo: "Alagamento", descricao: "Rua completamente alagada após chuva forte, água entrando nas residências.", endereco: "Av. Principal, 456 - Jardim Brasília", bairro: "Jardim Brasília", status: "em_andamento", urgencia: "medio", data: "2024-03-10T08:15:00", moradorId: 1, agenteStatus: "Equipe a caminho - previsão de chegada 30 minutos", fotos: [], avaliacao: null, lat: -23.2012, lng: -46.7619 },
+            { id: 3, titulo: "Risco de deslizamento", descricao: "Talude com fissuras após chuvas intensas, solo saturado e com risco iminente.", endereco: "Estrada do Botujuru, 500 - Botujuru", bairro: "Botujuru", status: "resolvido", urgencia: "alto", data: "2024-03-09T22:00:00", moradorId: 2, agenteStatus: "Vistoria realizada - área isolada", fotos: [], avaliacao: null, lat: -23.2267, lng: -46.7895 }
+        ];
+        
+        let alertas = [
+            { id: 1, titulo: "Chuvas intensas", descricao: "Previsão de chuvas fortes nas próximas 24 horas. Acumulado pode chegar a 100mm.", nivel: "alto", bairros: ["Centro", "Jardim Brasília", "Santa Maria"], status: "ativo" },
+            { id: 2, titulo: "Ventos fortes", descricao: "Rajadas de vento de até 70km/h. Evite áreas arborizadas.", nivel: "medio", bairros: ["Todos os bairros"], status: "ativo" }
+        ];
+        
+        // ============================================
+        // FUNÇÕES DE UI
+        // ============================================
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '✓' : type === 'error' ? '✗' : '⚠'}</span><span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function showLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.add('active');
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.remove('active');
+        }
+        
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                if (modalId === 'newOccurrenceModal') {
+                    fotosTemp = [];
+                    const previewContainer = document.getElementById('previewContainer');
+                    const fotoInput = document.getElementById('fotoInput');
+                    if (previewContainer) previewContainer.innerHTML = '';
+                    if (fotoInput) fotoInput.value = '';
+                }
+            }
+        }
+        
+        function resetProgressSteps() {
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
+            if (step1) step1.className = 'progress-step active';
+            if (step2) step2.className = 'progress-step';
+            if (step3) step3.className = 'progress-step';
+        }
+        
+        function openNewOccurrenceModal() {
+            fotosTemp = [];
+            const previewContainer = document.getElementById('previewContainer');
+            const fotoInput = document.getElementById('fotoInput');
+            const occTitulo = document.getElementById('occTitulo');
+            const occDescricao = document.getElementById('occDescricao');
+            const occEndereco = document.getElementById('occEndereco');
+            const occCep = document.getElementById('occCep');
+            if (previewContainer) previewContainer.innerHTML = '';
+            if (fotoInput) fotoInput.value = '';
+            if (occTitulo) occTitulo.value = '';
+            if (occDescricao) occDescricao.value = '';
+            if (occEndereco) occEndereco.value = '';
+            if (occCep) occCep.value = '';
+            resetProgressSteps();
+            openModal('newOccurrenceModal');
+        }
+        
+        // ============================================
+        // CONFIRMAÇÃO DE AÇÕES
+        // ============================================
+        function showConfirmDialog(message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const messageEl = document.getElementById('confirmMessage');
+            messageEl.textContent = message;
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            const handleConfirm = () => {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                if (onConfirm) onConfirm();
+                cleanup();
+            };
+            
+            const handleCancel = () => {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                cleanup();
+            };
+            
+            const cleanup = () => {
+                const confirmBtn = document.getElementById('confirmOkBtn');
+                const cancelBtn = document.getElementById('confirmCancelBtn');
+                if (confirmBtn) confirmBtn.onclick = null;
+                if (cancelBtn) cancelBtn.onclick = null;
+            };
+            
+            document.getElementById('confirmOkBtn').onclick = handleConfirm;
+            document.getElementById('confirmCancelBtn').onclick = handleCancel;
+        }
+        
+        function confirmarEnvioOcorrencia() {
+            const titulo = document.getElementById('occTitulo')?.value || '';
+            const descricao = document.getElementById('occDescricao')?.value || '';
+            const endereco = document.getElementById('occEndereco')?.value || '';
+            
+            if (!titulo || !descricao || !endereco) {
+                showToast('Preencha todos os campos', 'error');
+                return;
+            }
+            
+            if (descricao.length < 20) {
+                showToast('Descrição deve ter no mínimo 20 caracteres', 'error');
+                return;
+            }
+            
+            showConfirmDialog('Deseja realmente enviar esta ocorrência? A Defesa Civil será notificada.', () => {
+                saveOccurrence();
+            });
+        }
+        
+        // ============================================
+        // VALIDAÇÃO EM TEMPO REAL
+        // ============================================
+        function setupFormValidation() {
+            const titulo = document.getElementById('occTitulo');
+            const descricao = document.getElementById('occDescricao');
+            const endereco = document.getElementById('occEndereco');
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
+            
+            if (titulo) {
+                titulo.addEventListener('input', () => {
+                    if (titulo.value.length >= 5) {
+                        titulo.style.borderColor = 'var(--status-success)';
+                        if (step1) step1.className = 'progress-step completed';
+                    } else {
+                        titulo.style.borderColor = 'var(--gray-200)';
+                        if (step1) step1.className = 'progress-step active';
+                    }
+                });
+            }
+            
+            if (descricao) {
+                const charCount = document.createElement('small');
+                charCount.className = 'form-label';
+                charCount.style.marginTop = '4px';
+                charCount.style.fontSize = '11px';
+                descricao.parentNode.appendChild(charCount);
+                
+                descricao.addEventListener('input', () => {
+                    const remaining = 20 - descricao.value.length;
+                    if (descricao.value.length < 20) {
+                        descricao.style.borderColor = 'var(--status-warning)';
+                        charCount.innerHTML = `Mínimo 20 caracteres (faltam ${remaining})`;
+                        charCount.style.color = 'var(--status-warning)';
+                        if (step2) step2.className = 'progress-step active';
+                    } else {
+                        descricao.style.borderColor = 'var(--status-success)';
+                        charCount.innerHTML = '✓ Descrição adequada';
+                        charCount.style.color = 'var(--status-success)';
+                        if (step2) step2.className = 'progress-step completed';
+                    }
+                });
+            }
+            
+            if (endereco) {
+                endereco.addEventListener('input', () => {
+                    if (endereco.value.length >= 5) {
+                        endereco.style.borderColor = 'var(--status-success)';
+                        if (step3) step3.className = 'progress-step completed';
+                    } else {
+                        endereco.style.borderColor = 'var(--gray-200)';
+                        if (step3) step3.className = 'progress-step';
+                    }
+                });
+            }
+        }
+        
+        // ============================================
+        // BOTÃO VOLTAR AO TOPO
+        // ============================================
+        function initBackToTop() {
+            const btn = document.createElement('button');
+            btn.className = 'btn-back-to-top';
+            btn.innerHTML = '↑';
+            btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.body.appendChild(btn);
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    btn.classList.add('visible');
+                } else {
+                    btn.classList.remove('visible');
+                }
+            });
+        }
+        
+        // ============================================
+        // STATUS DE CONEXÃO
+        // ============================================
+        function initConnectionStatus() {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'connection-status';
+            statusDiv.id = 'connectionStatus';
+            document.body.appendChild(statusDiv);
+            updateConnectionStatus();
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+        }
+        
+        function updateConnectionStatus() {
+            const statusDiv = document.getElementById('connectionStatus');
+            if (!statusDiv) return;
+            if (navigator.onLine) {
+                statusDiv.className = 'connection-status online';
+                statusDiv.innerHTML = '<span class="dot"></span> Conectado';
+            } else {
+                statusDiv.className = 'connection-status offline';
+                statusDiv.innerHTML = '<span class="dot"></span> Sem conexão';
+            }
+        }
+        
+        // ============================================
+        // ATALHOS DE TECLADO
+        // ============================================
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'n') {
+                    e.preventDefault();
+                    openNewOccurrenceModal();
+                }
+                if (e.ctrlKey && e.key === 'h') {
+                    e.preventDefault();
+                    switchPage('home');
+                }
+                if (e.key === 'Escape') {
+                    const activeModals = document.querySelectorAll('.modal-overlay.active');
+                    activeModals.forEach(modal => {
+                        if (modal.id !== 'confirmModal') {
+                            closeModal(modal.id);
+                        }
+                    });
+                }
+            });
+        }
+        
+        // ============================================
+        // EXPORTAR OCORRÊNCIAS CSV
+        // ============================================
+        function exportarOcorrenciasCSV() {
+            const minhasOcorrencias = ocorrencias.filter(o => o.moradorId === currentUser.id);
+            if (minhasOcorrencias.length === 0) {
+                showToast('Nenhuma ocorrência para exportar', 'warning');
+                return;
+            }
+            
+            const headers = ['ID', 'Título', 'Descrição', 'Endereço', 'Status', 'Urgência', 'Data'];
+            const rows = minhasOcorrencias.map(o => [
+                o.id, o.titulo, o.descricao, o.endereco, o.status, o.urgencia, formatarDataHora(o.data)
+            ]);
+            
+            const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `ocorrencias_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('CSV exportado com sucesso!', 'success');
+        }
+        
+        // ============================================
+        // DROPDOWN DO USUÁRIO
+        // ============================================
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.toggle('active');
+        }
+        
+        function closeDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.remove('active');
+        }
+        
+        document.addEventListener('click', function(event) {
+            const userMenu = document.getElementById('userMenu');
+            if (userMenu && !userMenu.contains(event.target)) {
+                closeDropdown();
+            }
+        });
+        
+        const userMenuElement = document.getElementById('userMenu');
+        if (userMenuElement) {
+            userMenuElement.addEventListener('click', function(event) {
+                event.stopPropagation();
+                toggleDropdown();
+            });
+        }
+        
+        // ============================================
+        // PERFIL DO MORADOR
+        // ============================================
+        function abrirPerfil() {
+            const perfilNome = document.getElementById('perfilNome');
+            const perfilEmail = document.getElementById('perfilEmail');
+            const perfilTelefone = document.getElementById('perfilTelefone');
+            const perfilEndereco = document.getElementById('perfilEndereco');
+            const perfilCep = document.getElementById('perfilCep');
+            const perfilBairro = document.getElementById('perfilBairro');
+            const perfilNovaSenha = document.getElementById('perfilNovaSenha');
+            const perfilConfirmarSenha = document.getElementById('perfilConfirmarSenha');
+            
+            if (perfilNome) perfilNome.value = currentUser.nome || '';
+            if (perfilEmail) perfilEmail.value = currentUser.email || '';
+            if (perfilTelefone) perfilTelefone.value = currentUser.telefone || '';
+            if (perfilEndereco) perfilEndereco.value = currentUser.endereco || '';
+            if (perfilCep) perfilCep.value = currentUser.cep || '';
+            if (perfilBairro) perfilBairro.value = currentUser.bairro || '';
+            if (perfilNovaSenha) perfilNovaSenha.value = '';
+            if (perfilConfirmarSenha) perfilConfirmarSenha.value = '';
+            closeDropdown();
+            openModal('perfilModal');
+        }
+        
+        function buscarEnderecoPorCepPerfil() {
+            const cep = document.getElementById('perfilCep')?.value.replace(/\D/g, '');
+            if (!cep || cep.length !== 8) {
+                showToast('Digite um CEP válido', 'error');
+                return;
+            }
+            showToast('Buscando endereço...', 'warning');
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.erro) {
+                        showToast('CEP não encontrado', 'error');
+                        return;
+                    }
+                    const perfilEndereco = document.getElementById('perfilEndereco');
+                    const perfilBairro = document.getElementById('perfilBairro');
+                    if (perfilEndereco) perfilEndereco.value = `${data.logradouro}${data.complemento ? ', ' + data.complemento : ''}`;
+                    if (perfilBairro) perfilBairro.value = data.bairro;
+                    showToast('Endereço preenchido!', 'success');
+                })
+                .catch(() => showToast('Erro ao buscar CEP', 'error'));
+        }
+        
+        function salvarPerfil() {
+            const novaSenha = document.getElementById('perfilNovaSenha')?.value || '';
+            const confirmarSenha = document.getElementById('perfilConfirmarSenha')?.value || '';
+            
+            if (novaSenha && novaSenha !== confirmarSenha) {
+                showToast('As senhas não coincidem', 'error');
+                return;
+            }
+            
+            const perfilTelefone = document.getElementById('perfilTelefone');
+            const perfilEndereco = document.getElementById('perfilEndereco');
+            const perfilCep = document.getElementById('perfilCep');
+            const perfilBairro = document.getElementById('perfilBairro');
+            
+            if (perfilTelefone) currentUser.telefone = perfilTelefone.value;
+            if (perfilEndereco) currentUser.endereco = perfilEndereco.value;
+            if (perfilCep) currentUser.cep = perfilCep.value;
+            if (perfilBairro) currentUser.bairro = perfilBairro.value;
+            
+            if (novaSenha) {
+                currentUser.senha = novaSenha;
+            }
+            
+            const userIndex = usuarios.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                usuarios[userIndex] = currentUser;
+                localStorage.setItem('simad_usuarios', JSON.stringify(usuarios));
+            }
+            
+            localStorage.setItem('simad_user', JSON.stringify(currentUser));
+            const userNameSpan = document.getElementById('userName');
+            if (userNameSpan) userNameSpan.textContent = currentUser.nome.split(' ')[0];
+            showToast('Perfil atualizado com sucesso!', 'success');
+            closeModal('perfilModal');
+        }
+        
+        // ============================================
+        // EMERGÊNCIA E COMPARTILHAMENTO
+        // ============================================
+        function ligarEmergencia() {
+            window.location.href = 'tel:199';
+            showToast('Ligando para Defesa Civil - 199', 'warning');
+        }
+        
+        function compartilharOcorrencia() {
+            if (currentDetailOccurrence) {
+                const texto = `OCORRÊNCIA - SIMAD\n\nTítulo: ${currentDetailOccurrence.titulo}\nLocal: ${currentDetailOccurrence.endereco}\nStatus: ${currentDetailOccurrence.status}\n\nAcesse o SIMAD para mais informações.`;
+                if (navigator.share) {
+                    navigator.share({ title: 'SIMAD - Ocorrência', text: texto });
+                } else {
+                    navigator.clipboard.writeText(texto);
+                    showToast('Informações copiadas para área de transferência', 'success');
+                }
+            }
+        }
+        
+        // ============================================
+        // GEOLOCALIZAÇÃO E CEP
+        // ============================================
+        function usarLocalizacaoAtual() {
+            if (!navigator.geolocation) {
+                showToast('Seu navegador não suporta geolocalização', 'error');
+                return;
+            }
+            showToast('Buscando sua localização...', 'warning');
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=pt-BR`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.display_name) {
+                                const occEndereco = document.getElementById('occEndereco');
+                                if (occEndereco) occEndereco.value = data.display_name.split(',')[0] + ', ' + data.display_name.split(',')[1];
+                                showToast('Localização capturada!', 'success');
+                            }
+                        });
+                },
+                () => showToast('Erro ao obter localização', 'error')
+            );
+        }
+        
+        function buscarEnderecoPorCep() {
+            const cep = document.getElementById('occCep')?.value.replace(/\D/g, '');
+            if (!cep || cep.length !== 8) {
+                showToast('Digite um CEP válido', 'error');
+                return;
+            }
+            showToast('Buscando endereço...', 'warning');
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.erro) {
+                        showToast('CEP não encontrado', 'error');
+                        return;
+                    }
+                    const occEndereco = document.getElementById('occEndereco');
+                    if (occEndereco) occEndereco.value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
+                    showToast('Endereço preenchido!', 'success');
+                });
+        }
+        
+        // ============================================
+        // UPLOAD DE FOTOS
+        // ============================================
+        function previewFotos(files) {
+            const previewContainer = document.getElementById('previewContainer');
+            if (!previewContainer) return;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type.startsWith('image/')) continue;
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast(`Foto ${file.name} excede 5MB`, 'error');
+                    continue;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fotosTemp.push(e.target.result);
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" class="preview-img">
+                        <button class="remove-foto" onclick="removerFoto(${fotosTemp.length - 1})">×</button>
+                    `;
+                    previewContainer.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
+            }
+            const fotoInput = document.getElementById('fotoInput');
+            if (fotoInput) fotoInput.value = '';
+        }
+        
+        function removerFoto(index) {
+            fotosTemp.splice(index, 1);
+            const previewContainer = document.getElementById('previewContainer');
+            if (!previewContainer) return;
+            previewContainer.innerHTML = '';
+            fotosTemp.forEach((foto, i) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <img src="${foto}" class="preview-img">
+                    <button class="remove-foto" onclick="removerFoto(${i})">×</button>
+                `;
+                previewContainer.appendChild(previewItem);
+            });
+        }
+        
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+            if (!uploadArea) return;
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+            uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                previewFotos(e.dataTransfer.files);
+            });
+        }
+        
+        // ============================================
+        // PREVISÃO DE TEMPO
+        // ============================================
+        function calcularTempoResposta(bairro, urgencia) {
+            const regiao = regioesResposta[bairro] || regioesResposta['Centro'];
+            let urgenciaFator = 1;
+            if (urgencia === 'critico') urgenciaFator = 0.5;
+            else if (urgencia === 'alto') urgenciaFator = 0.7;
+            else if (urgencia === 'medio') urgenciaFator = 1;
+            else if (urgencia === 'baixo') urgenciaFator = 1.5;
+            const tempoMin = Math.floor(parseInt(regiao.tempo.split('-')[0]) * urgenciaFator);
+            const tempoMax = Math.floor(parseInt(regiao.tempo.split('-')[1]) * urgenciaFator);
+            return `${tempoMin}-${tempoMax} minutos`;
+        }
+        
+        // ============================================
+        // AVALIAÇÃO
+        // ============================================
+        function abrirAvaliacao(occurrenceId) {
+            avaliacaoOcorrenciaId = occurrenceId;
+            selectedAvaliacao = 0;
+            const stars = document.querySelectorAll('#avaliacaoStars .star');
+            stars.forEach(star => star.classList.remove('active'));
+            const avaliacaoComentario = document.getElementById('avaliacaoComentario');
+            if (avaliacaoComentario) avaliacaoComentario.value = '';
+            openModal('avaliacaoModal');
+        }
+        
+        function setupAvaliacaoStars() {
+            const stars = document.querySelectorAll('#avaliacaoStars .star');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    selectedAvaliacao = parseInt(this.getAttribute('data-value'));
+                    stars.forEach(s => s.classList.remove('active'));
+                    for (let i = 0; i < selectedAvaliacao; i++) {
+                        stars[i].classList.add('active');
+                    }
+                });
+            });
+        }
+        
+        function enviarAvaliacao() {
+            const occurrence = ocorrencias.find(o => o.id === avaliacaoOcorrenciaId);
+            if (occurrence) {
+                occurrence.avaliacao = {
+                    nota: selectedAvaliacao,
+                    comentario: document.getElementById('avaliacaoComentario')?.value || ''
+                };
+                saveData();
+                showToast('Avaliação enviada! Obrigado pelo feedback.', 'success');
+                const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
+                if (activePage === 'ocorrencias') filterOcorrencias();
+            }
+            closeModal('avaliacaoModal');
+        }
+        
+        // ============================================
+        // NOTIFICAÇÕES
+        // ============================================
+        function solicitarPermissaoNotificacao() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+        
+        function mostrarNotificacao(titulo, corpo) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(titulo, { body: corpo, icon: '/favicon.ico' });
+            }
+        }
+        
+        // ============================================
+        // OFFLINE MODE
+        // ============================================
+        function isOnline() { return navigator.onLine; }
+        
+        function updateOfflineStatus() {
+            const banner = document.getElementById('offlineBanner');
+            if (!isOnline()) {
+                if (banner) banner.classList.add('active');
+                showToast('Modo offline ativado. As ocorrências serão salvas localmente.', 'warning');
+            } else {
+                if (banner) banner.classList.remove('active');
+                syncPendingOccurrences();
+            }
+        }
+        
+        function syncPendingOccurrences() {
+            const saved = localStorage.getItem('simad_pending_occurrences');
+            if (saved) {
+                const pending = JSON.parse(saved);
+                if (pending.length > 0) {
+                    pending.forEach(occ => ocorrencias.unshift(occ));
+                    localStorage.removeItem('simad_pending_occurrences');
+                    saveData();
+                    showToast(`${pending.length} ocorrência(s) enviada(s) com sucesso!`, 'success');
+                    const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
+                    if (activePage === 'ocorrencias') filterOcorrencias();
+                }
+            }
+        }
+        
+        // ============================================
+        // MAPAS CORRIGIDOS - MORADOR
+        // ============================================
+        function initMapWithRetry(mapId, mapVariable, mapType, callback) {
+            return new Promise((resolve) => {
+                const tryInit = (attempt = 0) => {
+                    const container = document.getElementById(mapId);
+                    
+                    if (!container) {
+                        if (attempt < 10) {
+                            console.log(`Aguardando container ${mapId}... tentativa ${attempt + 1}`);
+                            setTimeout(() => tryInit(attempt + 1), 200);
+                        } else {
+                            console.error(`Container ${mapId} não encontrado após 10 tentativas`);
+                            resolve(null);
+                        }
+                        return;
+                    }
+                    
+                    const isVisible = container.offsetWidth > 0 && container.offsetHeight > 0;
+                    if (!isVisible && attempt < 10) {
+                        console.log(`Container ${mapId} não visível, aguardando...`);
+                        setTimeout(() => tryInit(attempt + 1), 200);
+                        return;
+                    }
+                    
+                    if (mapVariable) {
+                        try {
+                            mapVariable.off();
+                            mapVariable.remove();
+                        } catch(e) {}
+                    }
+                    
+                    try {
+                        const startLat = -23.207;
+                        const startLng = -46.77;
+                        
+                        const newMap = L.map(mapId).setView([startLat, startLng], 12);
+                        
+                        const lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '© OpenStreetMap'
+                        });
+                        
+                        const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                            maxZoom: 19,
+                            attribution: '© CARTO'
+                        });
+                        
+                        const isDark = document.documentElement.classList.contains('theme-dark');
+                        (isDark ? darkLayer : lightLayer).addTo(newMap);
+                        
+                        L.control.layers({'Mapa claro': lightLayer, 'Mapa escuro': darkLayer}, {}, {position: 'topright'}).addTo(newMap);
+                        L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(newMap);
+                        
+                        if (callback) callback(newMap);
+                        
+                        setTimeout(() => { newMap.invalidateSize(); }, 300);
+                        
+                        console.log(`Mapa ${mapId} inicializado com sucesso`);
+                        resolve(newMap);
+                    } catch (error) {
+                        console.error(`Erro ao inicializar ${mapId}:`, error);
+                        resolve(null);
+                    }
+                };
+                tryInit();
+            });
+        }
+        
+        async function initHomeMap() {
+            homeMap = await initMapWithRetry('homeMap', homeMap, 'home', (map) => {
+                if (map && typeof alertas !== 'undefined') {
+                    const startLat = -23.207;
+                    const startLng = -46.77;
+                    alertas.filter(a => a.status === 'ativo').forEach((alerta, index) => {
+                        const offset = index * 0.02;
+                        L.marker([startLat + offset, startLng + offset]).bindPopup(`
+                            <strong>${alerta.titulo}</strong><br>
+                            ${alerta.descricao}<br>
+                            <small>Nível: ${alerta.nivel} | Bairros: ${alerta.bairros.join(', ')}</small>
+                        `).addTo(map);
+                    });
+                }
+            });
+        }
+        
+        async function initMonitorMap() {
+            monitorMap = await initMapWithRetry('monitorMap', monitorMap, 'monitor', (map) => {
+                if (map && typeof ocorrencias !== 'undefined') {
+                    ocorrencias.forEach(o => {
+                        let markerColor = '#38A169';
+                        if (o.urgencia === 'alto') markerColor = '#E53E3E';
+                        else if (o.urgencia === 'medio') markerColor = '#DD6B20';
+                        if (o.status === 'resolvido') markerColor = '#2D3748';
+                        if (o.status === 'em_andamento') markerColor = '#3182CE';
+                        
+                        const customIcon = L.divIcon({
+                            html: `<div style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`,
+                            iconSize: [16, 16],
+                            className: 'custom-marker'
+                        });
+                        
+                        L.marker([o.lat, o.lng], { icon: customIcon }).bindPopup(`
+                            <strong>${o.titulo}</strong><br>
+                            ${o.endereco}<br>
+                            <small>Status: ${o.status} | Urgência: ${o.urgencia}</small>
+                        `).addTo(map);
+                    });
+                }
+            });
+        }
+        
+        function refreshCurrentMap() {
+            const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
+            
+            setTimeout(() => {
+                if (activePage === 'home' && homeMap) {
+                    homeMap.invalidateSize();
+                    console.log('HomeMap refresh após troca de aba');
+                } else if (activePage === 'monitoramento' && monitorMap) {
+                    monitorMap.invalidateSize();
+                    console.log('MonitorMap refresh após troca de aba');
+                }
+            }, 200);
+        }
+        
+        window.addEventListener('themechanged', (e) => {
+            const mode = e.detail.mode;
+            
+            const updateMapTheme = (map) => {
+                if (!map) return;
+                
+                const center = map.getCenter();
+                const zoom = map.getZoom();
+                
+                map.eachLayer(layer => {
+                    if (layer instanceof L.TileLayer) {
+                        map.removeLayer(layer);
+                    }
+                });
+                
+                const newLayer = mode === 'dark'
+                    ? L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '© CARTO' })
+                    : L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+                
+                newLayer.addTo(map);
+                map.setView(center, zoom);
+                setTimeout(() => map.invalidateSize(), 100);
+            };
+            
+            updateMapTheme(homeMap);
+            updateMapTheme(monitorMap);
+        });
+        
+        window.addEventListener('resize', () => {
+            setTimeout(() => {
+                if (homeMap) homeMap.invalidateSize();
+                if (monitorMap) monitorMap.invalidateSize();
+            }, 200);
+        });
+        
+        // ============================================
+        // AUTENTICAÇÃO
+        // ============================================
+        function loadUser() {
+            const savedUser = localStorage.getItem('simad_user');
+            if (!savedUser) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            currentUser = JSON.parse(savedUser);
+            
+            if (!currentUser.telefone) currentUser.telefone = '';
+            if (!currentUser.endereco) currentUser.endereco = '';
+            if (!currentUser.cep) currentUser.cep = '';
+            if (!currentUser.bairro) currentUser.bairro = '';
+            
+            const userNameSpan = document.getElementById('userName');
+            const userAvatarSpan = document.getElementById('userAvatar');
+            if (userNameSpan) userNameSpan.textContent = currentUser.nome.split(' ')[0];
+            if (userAvatarSpan) userAvatarSpan.textContent = currentUser.nome.charAt(0);
+            solicitarPermissaoNotificacao();
+            return currentUser;
+        }
+        
+        function logout() {
+            localStorage.removeItem('simad_user');
+            window.location.href = 'index.html';
+        }
+        
+        // ============================================
+        // NAVEGAÇÃO
+        // ============================================
+        function switchPage(pageName) {
+            showLoading();
+            setTimeout(() => {
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                const targetPage = document.getElementById(`page-${pageName}`);
+                if (targetPage) targetPage.classList.add('active');
+                
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                const activeTab = document.querySelector(`.tab[data-page="${pageName}"]`);
+                if (activeTab) activeTab.classList.add('active');
+                
+                if (pageName === 'monitoramento' && monitorMap) {
+                    setTimeout(() => monitorMap.invalidateSize(), 100);
+                }
+                if (pageName === 'home' && homeMap) {
+                    setTimeout(() => homeMap.invalidateSize(), 100);
+                }
+                hideLoading();
+                refreshCurrentMap();
+            }, 300);
+        }
+        
+        // ============================================
+        // PÁGINA HOME
+        // ============================================
+        function renderHome() {
+            const minhasOcorrencias = ocorrencias.filter(o => o.moradorId === currentUser.id);
+            const alertasAtivos = alertas.filter(a => a.status === 'ativo');
+            const homeHtml = `
+                <div class="page active" id="page-home">
+                    <div class="kpi-grid">
+                        <div class="kpi-card"><div class="kpi-value">${alertasAtivos.length}</div><div class="kpi-label">Alertas ativos</div></div>
+                        <div class="kpi-card"><div class="kpi-value">${minhasOcorrencias.filter(o => o.status !== 'resolvido').length}</div><div class="kpi-label">Em andamento</div></div>
+                        <div class="kpi-card"><div class="kpi-value">${minhasOcorrencias.length}</div><div class="kpi-label">Total de ocorrências</div></div>
+                    </div>
+                    
+                    <div class="map-card">
+                        <div class="map-header">
+                            <div class="map-title">Alertas ativos</div>
+                        </div>
+                        <div id="homeMap" class="map-container"></div>
+                    </div>
+                    
+                    <div class="section-header">
+                        <div class="section-title">Últimas ocorrências</div>
+                        <div class="section-link" onclick="switchPage('ocorrencias')">Ver todas</div>
+                    </div>
+                    <div class="ocorrencias-list">${renderOcorrenciasList(minhasOcorrencias.slice(0, 3))}</div>
+                </div>
+            `;
+            
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) mainContent.innerHTML = homeHtml;
+            setTimeout(() => initHomeMap(), 200);
+            setupDragAndDrop();
+        }
+        
+        function renderOcorrenciasList(lista) {
+            if (lista.length === 0) {
+                return '<div style="background: white; border-radius: var(--radius-lg); padding: 48px; text-align: center; border: 1px solid var(--gray-200); color: var(--gray-500);">Nenhuma ocorrência registrada</div>';
+            }
+            
+            return lista.map(o => {
+                let statusText = '';
+                if (o.status === 'pendente') statusText = 'Pendente';
+                else if (o.status === 'em_andamento') statusText = 'Em andamento';
+                else if (o.status === 'aprovado') statusText = 'Aprovado';
+                else if (o.status === 'resolvido') statusText = 'Resolvido';
+                else statusText = o.status;
+                
+                const tempoResposta = o.status === 'pendente' ? calcularTempoResposta(o.bairro, o.urgencia) : null;
+                
+                return `
+                    <div class="ocorrencia-card" onclick="openDetailModal(${o.id})">
+                        <div class="ocorrencia-header">
+                            <div class="ocorrencia-info">
+                                <div class="ocorrencia-titulo">${o.titulo}</div>
+                                <div class="ocorrencia-endereco">${o.endereco}</div>
+                            </div>
+                            <span class="badge badge-${o.status}">${statusText}</span>
+                        </div>
+                        <div class="ocorrencia-descricao">${o.descricao.substring(0, 100)}${o.descricao.length > 100 ? '...' : ''}</div>
+                        ${tempoResposta ? `<div class="tempo-resposta">Previsão: ${tempoResposta}</div>` : ''}
+                        ${o.fotos && o.fotos.length > 0 ? `<div class="fotos-preview">${o.fotos.slice(0, 3).map(foto => `<img src="${foto}" class="foto-miniatura">`).join('')}${o.fotos.length > 3 ? `<span class="foto-miniatura" style="display: flex; align-items: center; justify-content: center;">+${o.fotos.length - 3}</span>` : ''}</div>` : ''}
+                        ${o.agenteStatus ? `<div class="agente-status"><strong>Defesa Civil:</strong> ${o.agenteStatus}</div>` : ''}
+                        <div class="ocorrencia-footer">
+                            <div class="ocorrencia-data">${formatarDataHora(o.data)}</div>
+                            <div class="ocorrencia-data">Urgência: ${o.urgencia}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // ============================================
+        // PÁGINA MONITORAMENTO
+        // ============================================
+        function renderMonitoramento() {
+            const monitorHtml = `
+                <div class="page" id="page-monitoramento">
+                    <div class="map-card">
+                        <div class="map-header">
+                            <div class="map-title">Mapa de ocorrências</div>
+                        </div>
+                        <div id="monitorMap" class="map-container"></div>
+                    </div>
+                    <div class="section-header">
+                        <div class="section-title">Legenda</div>
+                    </div>
+                    <div style="display: flex; gap: 24px; flex-wrap: wrap; padding: 16px; background: white; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #E53E3E; border-radius: 50%;"></div><span>Alta urgência</span></div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #DD6B20; border-radius: 50%;"></div><span>Média urgência</span></div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #38A169; border-radius: 50%;"></div><span>Baixa urgência</span></div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #3182CE; border-radius: 50%;"></div><span>Em andamento</span></div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #2D3748; border-radius: 50%;"></div><span>Resolvida</span></div>
+                    </div>
+                </div>
+            `;
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) mainContent.innerHTML += monitorHtml;
+            setTimeout(() => initMonitorMap(), 200);
+        }
+        
+        // ============================================
+        // PÁGINA OCORRÊNCIAS
+        // ============================================
+        function renderOcorrencias() {
+            const ocorrenciasHtml = `
+                <div class="page" id="page-ocorrencias">
+                    <div class="section-header">
+                        <div class="section-title">Minhas ocorrências</div>
+                        <div class="filters-container">
+                            <div class="filter-group"><span class="filter-label">Status:</span><select id="statusFilter" class="filter-select" onchange="filterOcorrencias()"><option value="todos">Todos</option><option value="pendente">Pendentes</option><option value="em_andamento">Em andamento</option><option value="aprovado">Aprovados</option><option value="resolvido">Resolvidos</option><option value="rejeitado">Rejeitados</option></select></div>
+                            <div class="filter-group"><span class="filter-label">Urgência:</span><select id="urgenciaFilter" class="filter-select" onchange="filterOcorrencias()"><option value="todos">Todas</option><option value="baixo">Baixa</option><option value="medio">Média</option><option value="alto">Alta</option><option value="critico">Crítica</option></select></div>
+                            <button class="btn-simad btn-simad-outline" onclick="exportarOcorrenciasCSV()" style="gap: 6px;">Exportar CSV</button>
+                        </div>
+                    </div>
+                    <div id="ocorrenciasListContainer" class="ocorrencias-list"></div>
+                </div>
+            `;
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) mainContent.innerHTML += ocorrenciasHtml;
+            filterOcorrencias();
+        }
+        
+        function filterOcorrencias() {
+            let minhasOcorrencias = ocorrencias.filter(o => o.moradorId === currentUser.id);
+            const statusFilter = document.getElementById('statusFilter')?.value || 'todos';
+            const urgenciaFilter = document.getElementById('urgenciaFilter')?.value || 'todos';
+            if (statusFilter !== 'todos') minhasOcorrencias = minhasOcorrencias.filter(o => o.status === statusFilter);
+            if (urgenciaFilter !== 'todos') minhasOcorrencias = minhasOcorrencias.filter(o => o.urgencia === urgenciaFilter);
+            const container = document.getElementById('ocorrenciasListContainer');
+            if (!container) return;
+            if (minhasOcorrencias.length === 0) {
+                container.innerHTML = '<div style="background: white; border-radius: var(--radius-lg); padding: 48px; text-align: center; border: 1px solid var(--gray-200); color: var(--gray-500);">Nenhuma ocorrência encontrada</div>';
+                return;
+            }
+            container.innerHTML = renderOcorrenciasList(minhasOcorrencias);
+        }
+        
+        function openDetailModal(id) {
+            const occurrence = ocorrencias.find(o => o.id === id);
+            if (!occurrence) return;
+            currentDetailOccurrence = occurrence;
+            let statusText = '';
+            if (occurrence.status === 'pendente') statusText = 'Pendente';
+            else if (occurrence.status === 'em_andamento') statusText = 'Em andamento';
+            else if (occurrence.status === 'aprovado') statusText = 'Aprovado';
+            else if (occurrence.status === 'resolvido') statusText = 'Resolvido';
+            else statusText = occurrence.status;
+            
+            const detailTitulo = document.getElementById('detailTitulo');
+            const detailConteudo = document.getElementById('detailConteudo');
+            if (detailTitulo) detailTitulo.textContent = occurrence.titulo;
+            if (detailConteudo) {
+                detailConteudo.innerHTML = `
+                    <div class="form-group"><strong>Descrição:</strong><p style="margin-top: 8px;">${occurrence.descricao}</p></div>
+                    <div class="form-group"><strong>Endereço:</strong><p style="margin-top: 4px;">${occurrence.endereco}</p></div>
+                    <div class="form-group"><strong>Status:</strong><p style="margin-top: 4px;"><span class="badge badge-${occurrence.status}">${statusText}</span></p></div>
+                    <div class="form-group"><strong>Urgência:</strong><p style="margin-top: 4px;">${occurrence.urgencia}</p></div>
+                    <div class="form-group"><strong>Previsão de resposta:</strong><p style="margin-top: 4px;">${calcularTempoResposta(occurrence.bairro, occurrence.urgencia)}</p></div>
+                    <div class="form-group"><strong>Data:</strong><p style="margin-top: 4px;">${formatarDataHora(occurrence.data)}</p></div>
+                    ${occurrence.agenteStatus ? `<div class="form-group"><strong>Atualização da Defesa Civil:</strong><div style="background: var(--gray-100); padding: 12px; border-radius: var(--radius-md); margin-top: 8px;">${occurrence.agenteStatus}</div></div>` : ''}
+                    ${occurrence.fotos && occurrence.fotos.length > 0 ? `<div class="form-group"><strong>Fotos:</strong><div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">${occurrence.fotos.map(foto => `<img src="${foto}" style="max-width: 150px; border-radius: var(--radius-md); cursor: pointer;" onclick="window.open(this.src)">`).join('')}</div></div>` : ''}
+                    ${occurrence.status === 'resolvido' && !occurrence.avaliacao ? `<div style="margin-top: 16px;"><button class="btn-simad btn-simad-primary" onclick="abrirAvaliacao(${occurrence.id})">Avaliar atendimento</button></div>` : ''}
+                    ${occurrence.avaliacao ? `<div class="form-group"><strong>Sua avaliação:</strong><div style="margin-top: 8px;">${'★'.repeat(occurrence.avaliacao.nota)}${'☆'.repeat(5 - occurrence.avaliacao.nota)}</div>${occurrence.avaliacao.comentario ? `<p style="margin-top: 8px; font-size: 13px;">"${occurrence.avaliacao.comentario}"</p>` : ''}</div>` : ''}
+                `;
+            }
+            openModal('detailModal');
+        }
+        
+        function formatarDataHora(dataStr) {
+            const data = new Date(dataStr);
+            return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        // ============================================
+        // SALVAR OCORRÊNCIA
+        // ============================================
+        function saveOccurrence() {
+            showLoading();
+            setTimeout(() => {
+                const titulo = document.getElementById('occTitulo')?.value || '';
+                const descricao = document.getElementById('occDescricao')?.value || '';
+                const endereco = document.getElementById('occEndereco')?.value || '';
+                const urgencia = document.getElementById('occUrgencia')?.value || 'medio';
+                let bairro = 'Centro';
+                if (endereco.includes('Centro')) bairro = 'Centro';
+                else if (endereco.includes('Jardim Brasília')) bairro = 'Jardim Brasília';
+                else if (endereco.includes('Botujuru')) bairro = 'Botujuru';
+                else if (endereco.includes('Santa Maria')) bairro = 'Santa Maria';
+                
+                const nova = { id: Date.now(), titulo, descricao, endereco, bairro, status: 'pendente', urgencia, data: new Date().toISOString(), moradorId: currentUser.id, agenteStatus: null, fotos: [...fotosTemp], avaliacao: null, lat: -23.207, lng: -46.77 };
+                
+                if (!isOnline()) {
+                    const pending = JSON.parse(localStorage.getItem('simad_pending_occurrences') || '[]');
+                    pending.push(nova);
+                    localStorage.setItem('simad_pending_occurrences', JSON.stringify(pending));
+                    showToast('Sem internet. Ocorrência salva localmente e será enviada quando a conexão for restaurada.', 'warning');
+                } else {
+                    ocorrencias.unshift(nova);
+                    saveData();
+                    showToast('Ocorrência registrada com sucesso', 'success');
+                    mostrarNotificacao('Nova ocorrência', `${titulo} - ${endereco}`);
+                }
+                closeModal('newOccurrenceModal');
+                const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
+                if (activePage === 'home') renderHome();
+                else if (activePage === 'ocorrencias') filterOcorrencias();
+                hideLoading();
+            }, 500);
+        }
+        
+        function saveData() {
+            localStorage.setItem('simad_ocorrencias', JSON.stringify(ocorrencias));
+            localStorage.setItem('simad_alertas', JSON.stringify(alertas));
+        }
+        
+        function loadSavedData() {
+            const savedOcorrencias = localStorage.getItem('simad_ocorrencias');
+            const savedAlertas = localStorage.getItem('simad_alertas');
+            if (savedOcorrencias) ocorrencias = JSON.parse(savedOcorrencias);
+            if (savedAlertas) alertas = JSON.parse(savedAlertas);
+        }
+        
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
+        function init() {
+            if (!loadUser()) return;
+            loadSavedData();
+            renderHome();
+            renderMonitoramento();
+            renderOcorrencias();
+            setupDragAndDrop();
+            setupAvaliacaoStars();
+            setupFormValidation();
+            initBackToTop();
+            initConnectionStatus();
+            setupKeyboardShortcuts();
+            
+            window.addEventListener('online', () => { updateOfflineStatus(); showToast('Conexão restaurada!', 'success'); });
+            window.addEventListener('offline', updateOfflineStatus);
+            updateOfflineStatus();
+        }
+        
+        init();
+    </script>
+
+
+</body>
+</html>

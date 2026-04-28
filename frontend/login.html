@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="SIMAD - Sistema Integrado de Monitoramento e Alerta de Desastres da Defesa Civil de Campo Limpo Paulista">
+    <meta name="theme-color" content="#6B46C1">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
+    <link rel="shortcut icon" href="favicon_io/favicon-16x16.png">
+    <title>SIMAD | Login </title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           VARIÁVEIS DE DESIGN
+        ============================================ */
+        :root {
+            --primary-purple: #6B46C1;
+            --primary-purple-dark: #553C9A;
+            --primary-purple-light: #9F7AEA;
+            --primary-blue: #2B6CB0;
+            --primary-blue-dark: #1E4C7A;
+            --primary-orange: #DD6B20;
+            --primary-orange-dark: #C35F1C;
+            
+            --gray-50: #F7FAFC;
+            --gray-100: #EDF2F7;
+            --gray-200: #E2E8F0;
+            --gray-300: #CBD5E0;
+            --gray-400: #A0AEC0;
+            --gray-500: #718096;
+            --gray-600: #4A5568;
+            --gray-700: #2D3748;
+            --gray-800: #1A202C;
+            --gray-900: #171923;
+            
+            --status-success: #38A169;
+            --status-success-bg: #F0FFF4;
+            --status-warning: #DD6B20;
+            --status-warning-bg: #FFFAF0;
+            --status-danger: #E53E3E;
+            --status-danger-bg: #FFF5F5;
+            --status-info: #3182CE;
+            --status-info-bg: #EBF8FF;
+            --status-pending: #D69E2E;
+            --status-pending-bg: #FFFFF0;
+            
+            --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.10);
+            --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.15);
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+            --radius-2xl: 24px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+            --transition-slow: 0.4s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        *:focus-visible {
+            outline: 2px solid var(--primary-purple);
+            outline-offset: 2px;
+            border-radius: var(--radius-sm);
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+        
+        /* ============================================
+           LAYOUT DE LOGIN
+        ============================================ */
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        
+        .login-container {
+            max-width: 1120px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: white;
+            border-radius: var(--radius-2xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-2xl);
+        }
+        
+        /* Lado Esquerdo - Branding */
+        .login-brand {
+            background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-blue) 100%);
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: white;
+        }
+        
+        .brand-header {
+            margin-bottom: 48px;
+        }
+        
+        .brand-logo {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+        }
+        
+        .brand-slogan {
+            font-size: 14px;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+        
+        .brand-quote {
+            margin: 48px 0;
+        }
+        
+        .brand-quote-text {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 16px;
+        }
+        
+        .brand-quote-author {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .brand-features {
+            list-style: none;
+            margin-top: auto;
+        }
+        
+        .brand-features li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .brand-features li::before {
+            content: "✓";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            font-size: 12px;
+        }
+        
+        /* Lado Direito - Formulário */
+        .login-form-side {
+            padding: 48px;
+            background: white;
+        }
+        
+        .form-header {
+            margin-bottom: 32px;
+        }
+        
+        .form-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+        }
+        
+        .form-subtitle {
+            color: var(--gray-500);
+            font-size: 14px;
+        }
+        
+        /* Seletores de Tipo */
+        .user-type-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            padding: 4px;
+            background: var(--gray-100);
+            border-radius: var(--radius-lg);
+        }
+        
+        .type-btn {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--gray-600);
+            font-family: inherit;
+        }
+        
+        .type-btn.active {
+            background: white;
+            color: var(--primary-purple);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .type-btn:hover:not(.active) {
+            color: var(--primary-purple);
+        }
+        
+        /* Formulários */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray-700);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all var(--transition-fast);
+            background: white;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: var(--gray-400);
+        }
+        
+        /* Botões Padrão */
+        .btn {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-family: inherit;
+        }
+        
+        .btn-primary {
+            background: var(--primary-purple);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-purple-dark);
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--gray-600);
+            border: 1.5px solid var(--gray-200);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary-purple);
+            color: var(--primary-purple);
+        }
+        
+        /* Links */
+        .form-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .form-link a {
+            color: var(--primary-purple);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color var(--transition-fast);
+        }
+        
+        .form-link a:hover {
+            color: var(--primary-purple-dark);
+            text-decoration: underline;
+        }
+        
+        /* Divisor */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+            color: var(--gray-400);
+            font-size: 12px;
+        }
+        
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: white;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+            border-left: 3px solid var(--status-success);
+        }
+        
+        .toast.error {
+            border-left-color: var(--status-danger);
+        }
+        
+        .toast.warning {
+            border-left-color: var(--status-warning);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-container {
+            background: white;
+            border-radius: var(--radius-xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: modalSlideUp 0.3s ease;
+        }
+        
+        @keyframes modalSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-footer {
+            padding: 16px 24px 24px;
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .modal-footer .btn {
+            flex: 1;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 900px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+            }
+            
+            .login-brand {
+                display: none;
+            }
+            
+            .login-form-side {
+                padding: 32px 24px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-title {
+                font-size: 24px;
+            }
+            
+            .login-form-side {
+                padding: 24px 20px;
+            }
+            
+            .user-type-selector {
+                gap: 8px;
+            }
+            
+            .type-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <!-- Lado Esquerdo - Branding -->
+            <div class="login-brand">
+                <div>
+                    <div class="brand-header">
+                        <div class="brand-logo" onclick="window.location.href='index.html'">SIMAD</div>
+                        <div class="brand-slogan">Junto com a Defesa Civil de Campo Limpo Paulista</div>
+                    </div>
+                    <div class="brand-quote">
+                        <div class="brand-quote-text">Porque segundos<br>salvam vidas</div>
+                        <div class="brand-quote-author">— Sistema Integrado de Monitoramento e Alerta de Desastres</div>
+                    </div>
+                </div>
+                <ul class="brand-features">
+                    <li>Monitoramento em tempo real</li>
+                    <li>Alertas georreferenciados</li>
+                    <li>Comunicação direta com a Defesa Civil</li>
+                    <li>Relatórios técnicos integrados</li>
+                </ul>
+            </div>
+            
+            <!-- Lado Direito - Formulário -->
+            <div class="login-form-side">
+                <div class="form-header">
+                    <h1 class="form-title">Acesse a plataforma</h1>
+                    <p class="form-subtitle">Selecione seu perfil para continuar</p>
+                </div>
+                
+                <div class="user-type-selector">
+                    <button class="type-btn active" data-type="morador" onclick="selectUserType('morador')">Morador</button>
+                    <button class="type-btn" data-type="agente" onclick="selectUserType('agente')">Agente</button>
+                </div>
+                
+                <div id="formContainer"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Cadastro -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title">Criar conta</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nome completo</label>
+                    <input type="text" id="regNome" class="form-input" placeholder="Seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">E-mail</label>
+                    <input type="email" id="regEmail" class="form-input" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefone</label>
+                    <input type="tel" id="regTelefone" class="form-input" placeholder="(11) 99999-9999">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Endereço</label>
+                    <input type="text" id="regEndereco" class="form-input" placeholder="Rua, número, bairro">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Senha</label>
+                    <input type="password" id="regSenha" class="form-input" placeholder="Crie uma senha">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRegisterModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="doRegister()">Cadastrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DADOS MOCKADOS
+        // ============================================
+        let currentUser = null;
+        
+        let usuarios = [
+            { id: 1, nome: "João Silva", email: "joao@email.com", senha: "123456", telefone: "(11) 99999-9999", endereco: "Rua das Flores, 123", bairro: "Centro", tipo: "morador" },
+            { id: 2, nome: "Maria Santos", email: "maria@email.com", senha: "123456", telefone: "(11) 98888-8888", endereco: "Av. Principal, 456", bairro: "Jardim Brasília", tipo: "morador" },
+            { id: 3, nome: "Carlos Pereira", email: "agente@defesacivil.com", senha: "admin123", tipo: "agente", cargo: "Coordenador de Operações" }
+        ];
+        
+        // ============================================
+        // FUNÇÕES DE UI
+        // ============================================
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '✓' : type === 'error' ? '✗' : '⚠'}</span><span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function openRegisterModal() {
+            document.getElementById('registerModal').classList.add('active');
+        }
+        
+        function closeRegisterModal() {
+            document.getElementById('registerModal').classList.remove('active');
+            document.getElementById('regNome').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regTelefone').value = '';
+            document.getElementById('regEndereco').value = '';
+            document.getElementById('regSenha').value = '';
+        }
+        
+        // ============================================
+        // AUTENTICAÇÃO
+        // ============================================
+        let currentType = 'morador';
+        
+        function selectUserType(type) {
+            currentType = type;
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-type') === type) {
+                    btn.classList.add('active');
+                }
+            });
+            renderForm();
+        }
+        
+        function renderForm() {
+            const container = document.getElementById('formContainer');
+            
+            if (currentType === 'morador') {
+                container.innerHTML = `
+                    <div>
+                        <div class="form-group">
+                            <label class="form-label">E-mail</label>
+                            <input type="email" id="loginEmail" class="form-input" placeholder="seu@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Senha</label>
+                            <input type="password" id="loginSenha" class="form-input" placeholder="Sua senha">
+                        </div>
+                        <button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+                        <div class="divider">
+                            <span class="divider-line"></span>
+                            <span>ou</span>
+                            <span class="divider-line"></span>
+                        </div>
+                        <div class="form-link">
+                            <a href="#" onclick="openRegisterModal(); return false;">Criar nova conta</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div>
+                        <div class="form-group">
+                            <label class="form-label">E-mail institucional</label>
+                            <input type="email" id="loginEmail" class="form-input" placeholder="agente@defesacivil.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Senha</label>
+                            <input type="password" id="loginSenha" class="form-input" placeholder="Sua senha">
+                        </div>
+                        <button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+                        <div class="divider">
+                            <span class="divider-line"></span>
+                            <span>ou</span>
+                            <span class="divider-line"></span>
+                        </div>
+                        <div class="form-link">
+                            <a href="#" onclick="showToast('Envie um e-mail para suporte@defesacivil.com', 'warning'); return false;">Esqueci minha senha</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function doLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+            
+            const user = usuarios.find(u => u.email === email && u.senha === senha);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('simad_user', JSON.stringify(user));
+                showToast(`Bem-vindo, ${user.nome}`, 'success');
+                
+                setTimeout(() => {
+                    if (user.tipo === 'morador') {
+                        window.location.href = 'morador.html';
+                    } else {
+                        window.location.href = 'agente.html';
+                    }
+                }, 500);
+            } else {
+                showToast('E-mail ou senha inválidos', 'error');
+            }
+        }
+        
+        function doRegister() {
+            const nome = document.getElementById('regNome').value;
+            const email = document.getElementById('regEmail').value;
+            const telefone = document.getElementById('regTelefone').value;
+            const endereco = document.getElementById('regEndereco').value;
+            const senha = document.getElementById('regSenha').value;
+            
+            if (!nome || !email || !senha) {
+                showToast('Preencha todos os campos obrigatórios', 'error');
+                return;
+            }
+            
+            if (usuarios.find(u => u.email === email)) {
+                showToast('E-mail já cadastrado', 'error');
+                return;
+            }
+            
+            const novoUsuario = {
+                id: usuarios.length + 1,
+                nome, email, senha, telefone, endereco,
+                bairro: endereco.split(',')[1]?.trim() || 'Não informado',
+                tipo: 'morador'
+            };
+            
+            usuarios.push(novoUsuario);
+            localStorage.setItem('simad_usuarios', JSON.stringify(usuarios));
+            showToast('Cadastro realizado! Faça login.', 'success');
+            closeRegisterModal();
+            renderForm();
+        }
+        
+        // ============================================
+        // VERIFICAR SESSÃO
+        // ============================================
+        function checkAuth() {
+            const savedUser = localStorage.getItem('simad_user');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                if (user.tipo === 'morador' && !window.location.pathname.includes('morador.html')) {
+                    window.location.href = 'morador.html';
+                } else if (user.tipo === 'agente' && !window.location.pathname.includes('agente.html')) {
+                    window.location.href = 'agente.html';
+                }
+            }
+        }
+        
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
+        renderForm();
+        checkAuth();
+        
+        // Carregar dados salvos
+        const savedUsuarios = localStorage.getItem('simad_usuarios');
+        if (savedUsuarios) {
+            usuarios = JSON.parse(savedUsuarios);
+        }
+    </script>
+</body>
+</html>

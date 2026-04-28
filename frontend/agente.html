@@ -1,0 +1,2393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="SIMAD - Painel do Agente | Gestão de ocorrências e alertas">
+    <meta name="theme-color" content="#6B46C1">
+    <title>SIMAD | Painel do Agente</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet para mapas -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    
+    <style>
+        /* ============================================
+           VARIÁVEIS DE DESIGN
+        ============================================ */
+        :root {
+            --primary-purple: #6B46C1;
+            --primary-purple-dark: #553C9A;
+            --primary-purple-light: #E9E0F9;
+            --primary-blue: #2B6CB0;
+            --primary-blue-dark: #1E4C7A;
+            --primary-orange: #DD6B20;
+            --primary-orange-dark: #C35F1C;
+            
+            --gray-50: #F7FAFC;
+            --gray-100: #EDF2F7;
+            --gray-200: #E2E8F0;
+            --gray-300: #CBD5E0;
+            --gray-400: #A0AEC0;
+            --gray-500: #718096;
+            --gray-600: #4A5568;
+            --gray-700: #2D3748;
+            --gray-800: #1A202C;
+            --gray-900: #171923;
+            
+            --status-success: #38A169;
+            --status-success-bg: #F0FFF4;
+            --status-warning: #DD6B20;
+            --status-warning-bg: #FFFAF0;
+            --status-danger: #E53E3E;
+            --status-danger-bg: #FFF5F5;
+            --status-info: #3182CE;
+            --status-info-bg: #EBF8FF;
+            --status-pending: #D69E2E;
+            --status-pending-bg: #FFFFF0;
+            
+            --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.10);
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+            --radius-2xl: 24px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        *:focus-visible {
+            outline: 2px solid var(--primary-purple);
+            outline-offset: 2px;
+            border-radius: var(--radius-sm);
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+        
+        /* ============================================
+           Z-INDEX HIERARQUIA CORRETA
+        ============================================ */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--gray-200);
+            z-index: 1000;
+            padding: 0 24px;
+        }
+        
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .logo-area {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-purple);
+            letter-spacing: -0.5px;
+        }
+        
+        .slogan {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .btn-simad {
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-family: inherit;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-simad-primary {
+            background: var(--primary-orange);
+            color: white;
+        }
+        
+        .btn-simad-primary:hover {
+            background: var(--primary-orange-dark);
+            transform: translateY(-1px);
+        }
+        
+        .btn-simad-danger {
+            background: var(--status-danger);
+            color: white;
+        }
+        
+        .btn-simad-danger:hover {
+            background: #C53030;
+            transform: translateY(-1px);
+        }
+        
+        .btn-simad-outline {
+            background: transparent;
+            border: 1.5px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+        
+        .btn-simad-outline:hover {
+            border-color: var(--primary-purple);
+            color: var(--primary-purple);
+            background: transparent;
+        }
+        
+        .btn-simad-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+        
+        .btn-simad-secondary:hover {
+            background: var(--gray-200);
+        }
+        
+        .user-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 40px;
+            transition: background var(--transition-fast);
+        }
+        
+        .user-menu:hover {
+            background: var(--gray-100);
+        }
+        
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-purple);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-200);
+            min-width: 180px;
+            overflow: hidden;
+            z-index: 1001;
+            display: none;
+        }
+        
+        .user-dropdown.active {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .dropdown-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+        
+        .dropdown-item:hover {
+            background: var(--gray-100);
+        }
+        
+        .dropdown-item:first-child {
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .offline-banner {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: var(--status-warning);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 998;
+            display: none;
+        }
+        
+        .offline-banner.active {
+            display: block;
+        }
+        
+        /* ============================================
+           NAVEGAÇÃO POR ABAS
+        ============================================ */
+        .nav-tabs {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            z-index: 999;
+            padding: 0 24px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .tabs-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 32px;
+        }
+        
+        .tab {
+            padding: 16px 4px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-500);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all var(--transition-fast);
+        }
+        
+        .tab:hover {
+            color: var(--primary-purple);
+        }
+        
+        .tab.active {
+            color: var(--primary-purple);
+            border-bottom-color: var(--primary-purple);
+        }
+        
+        /* ============================================
+           CONTEÚDO PRINCIPAL
+        ============================================ */
+        .main-content {
+            padding-top: 138px;
+            padding-left: 24px;
+            padding-right: 24px;
+            padding-bottom: 48px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ============================================
+           MAPAS RESPONSIVOS
+        ============================================ */
+        .map-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+        
+        .map-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .map-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+        
+        .map-container {
+            height: 450px;
+            width: 100%;
+            background: var(--gray-100);
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Forçar controles do Leaflet a ficarem abaixo do header */
+        .leaflet-top,
+        .leaflet-bottom {
+            z-index: 500 !important;
+        }
+        
+        .leaflet-control-zoom {
+            z-index: 500 !important;
+        }
+        
+        .leaflet-popup {
+            z-index: 800 !important;
+        }
+        
+        .leaflet-map-pane {
+            z-index: 1;
+        }
+        
+        .leaflet-overlay-pane {
+            z-index: 2;
+        }
+        
+        .leaflet-marker-pane {
+            z-index: 3;
+        }
+        
+        .leaflet-tooltip-pane {
+            z-index: 4;
+        }
+        
+        @media (min-width: 1400px) {
+            .map-container { height: 550px; }
+        }
+        
+        @media (max-width: 1024px) {
+            .map-container { height: 380px; }
+        }
+        
+        @media (max-width: 768px) {
+            .map-container { height: 320px; }
+        }
+        
+        @media (min-width: 1920px) {
+            .map-container { height: 650px; }
+        }
+        
+        #dashboardMap, #mapaGeral {
+            height: 100%;
+            width: 100%;
+            min-height: 300px;
+        }
+        
+        /* ============================================
+           CARDS E KPI
+        ============================================ */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-fast);
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary-purple);
+            line-height: 1.2;
+        }
+        
+        .kpi-label {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        /* ============================================
+           GRÁFICOS
+        ============================================ */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--gray-200);
+            padding: 20px;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--gray-800);
+        }
+        
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+        
+        /* ============================================
+           LISTAS E FILTROS
+        ============================================ */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+        
+        .filters-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: var(--gray-100);
+            padding: 12px 20px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            min-width: 130px;
+        }
+        
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 12px;
+            background: white;
+            min-width: 200px;
+        }
+        
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--primary-purple);
+        }
+        
+        .ocorrencias-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .ocorrencia-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-fast);
+        }
+        
+        .ocorrencia-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        
+        .ocorrencia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .ocorrencia-titulo {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--gray-800);
+        }
+        
+        .ocorrencia-endereco {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .badge-pendente { background: var(--status-pending-bg); color: var(--status-pending); }
+        .badge-em_andamento { background: var(--status-info-bg); color: var(--status-info); }
+        .badge-aprovado { background: var(--status-success-bg); color: var(--status-success); }
+        .badge-resolvido { background: var(--status-success-bg); color: var(--status-success); }
+        .badge-rejeitado { background: var(--status-danger-bg); color: var(--status-danger); }
+        
+        .ocorrencia-descricao {
+            font-size: 13px;
+            color: var(--gray-600);
+            line-height: 1.5;
+            margin: 12px 0;
+        }
+        
+        .ocorrencia-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--gray-100);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .ocorrencia-data {
+            font-size: 11px;
+            color: var(--gray-400);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-action {
+            padding: 6px 14px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-family: inherit;
+            border: none;
+        }
+        
+        .btn-action-success {
+            background: var(--status-success);
+            color: white;
+        }
+        
+        .btn-action-success:hover {
+            background: #2F855A;
+            transform: translateY(-1px);
+        }
+        
+        .btn-action-danger {
+            background: var(--status-danger);
+            color: white;
+        }
+        
+        .btn-action-danger:hover {
+            background: #C53030;
+            transform: translateY(-1px);
+        }
+        
+        .btn-action-info {
+            background: var(--status-info);
+            color: white;
+        }
+        
+        .btn-action-info:hover {
+            background: #2C5282;
+            transform: translateY(-1px);
+        }
+        
+        .btn-action-warning {
+            background: var(--status-warning);
+            color: white;
+        }
+        
+        .btn-action-warning:hover {
+            background: #C05621;
+            transform: translateY(-1px);
+        }
+        
+        .btn-action-outline {
+            background: transparent;
+            border: 1.5px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+        
+        .btn-action-outline:hover {
+            border-color: var(--primary-purple);
+            color: var(--primary-purple);
+        }
+        
+        /* ============================================
+           FORMULÁRIOS
+        ============================================ */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray-700);
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all var(--transition-fast);
+            background: white;
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        /* ============================================
+           MODAL
+        ============================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: var(--radius-2xl);
+            max-width: 560px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: modalSlideUp 0.3s ease;
+        }
+        
+        .modal::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .modal::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border-radius: 10px;
+            margin: 8px 0;
+        }
+        
+        .modal::-webkit-scrollbar-thumb {
+            background: var(--gray-400);
+            border-radius: 10px;
+        }
+        
+        .modal::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-purple);
+        }
+        
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-footer {
+            padding: 16px 24px 24px;
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid var(--gray-200);
+            position: sticky;
+            bottom: 0;
+            background: white;
+        }
+        
+        /* ============================================
+           RELATÓRIOS
+        ============================================ */
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .report-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-fast);
+        }
+        
+        .report-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        
+        .report-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .report-date {
+            font-size: 11px;
+            color: var(--gray-400);
+            margin-bottom: 12px;
+        }
+        
+        /* ============================================
+           LOADING
+        ============================================ */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2001;
+            backdrop-filter: blur(4px);
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Botão Voltar ao Topo */
+        .btn-back-to-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-fast);
+            z-index: 1001;
+            font-size: 20px;
+        }
+        
+        .btn-back-to-top:hover {
+            background: var(--primary-purple-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-back-to-top.visible {
+            display: flex;
+        }
+        
+        /* Status de Conexão */
+        .connection-status {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .connection-status.online {
+            color: var(--status-success);
+        }
+        
+        .connection-status.offline {
+            color: var(--status-warning);
+        }
+        
+        .connection-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: white;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2002;
+            animation: slideInRight 0.3s ease;
+            border-left: 3px solid var(--status-success);
+        }
+        
+        .toast.error { border-left-color: var(--status-danger); }
+        .toast.warning { border-left-color: var(--status-warning); }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+                    .footer {
+            background: var(--gray-900);
+            color: var(--gray-400);
+            padding: 40px 24px 24px;
+            margin-top: 60px;
+            border-top: 1px solid var(--gray-800);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-bottom: 32px;
+        }
+
+        .footer-logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .footer-description {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--gray-500);
+        }
+
+        .footer-col h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col li {
+            margin-bottom: 8px;
+        }
+
+        .footer-col a {
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color var(--transition-fast);
+        }
+
+        .footer-col a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-800);
+            font-size: 12px;
+        }
+
+        .footer-bottom .slogan {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        @media (max-width: 768px) {
+            .footer {
+                padding: 32px 20px 20px;
+                margin-top: 40px;
+            }
+            
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                text-align: center;
+            }
+            
+            .footer-col h4 {
+                margin-bottom: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo { font-size: 18px; }
+            .btn-simad-primary, .btn-simad-danger { padding: 8px 14px; }
+        }
+        
+        /* ============================================
+           RESPONSIVIDADE
+        ============================================ */
+        @media (max-width: 1024px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            .header-container { height: 60px; }
+            .slogan { display: none; }
+            .nav-tabs { top: 60px; }
+            .main-content { padding-top: 128px; padding-left: 16px; padding-right: 16px; }
+            .kpi-grid { grid-template-columns: 1fr; gap: 12px; }
+            .kpi-card { padding: 16px; }
+            .kpi-value { font-size: 28px; }
+            .user-name { display: none; }
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .filters-container { flex-direction: column; }
+            .filter-group { justify-content: space-between; }
+            .filter-select, .filter-input { flex: 1; }
+            .connection-status { bottom: 80px; }
+            .btn-back-to-top { bottom: 80px; }
+            .charts-grid { gap: 12px; }
+            .chart-container { height: 200px; }
+        }
+        
+        @media (max-width: 480px) {
+            .logo { font-size: 18px; }
+            .btn-simad-primary, .btn-simad-danger { padding: 6px 14px; font-size: 12px; }
+            .btn-simad-primary span:first-child, .btn-simad-danger span:first-child { display: inline; }
+            .btn-simad-primary span:last-child, .btn-simad-danger span:last-child { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Offline Banner -->
+    <div class="offline-banner" id="offlineBanner">
+        Você está offline. Os dados podem estar desatualizados.
+    </div>
+    
+    <!-- Header Fixo -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-area">
+                <span class="logo">SIMAD</span>
+                <span class="slogan">Porque segundos salvam vidas</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-simad btn-simad-danger" onclick="ligarEmergencia()">
+                    <span>Emergência 199</span>
+                </button>
+                <button class="btn-simad btn-simad-primary" onclick="openAlertModal()">
+                    <span>⚠</span> <span>Emitir Alerta</span>
+                </button>
+                <div class="user-menu" id="userMenu">
+                    <span class="user-name" id="userName"></span>
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-item" onclick="abrirPerfil()">
+                            <span>👤</span> Meu Perfil
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item" onclick="logout()">
+                            <span>🚪</span> Sair
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Navegação por Abas -->
+    <nav class="nav-tabs">
+        <div class="tabs-container">
+            <div class="tab active" data-page="dashboard" onclick="switchPage('dashboard')">Dashboard</div>
+            <div class="tab" data-page="mapas" onclick="switchPage('mapas')">Mapas</div>
+            <div class="tab" data-page="ocorrencias" onclick="switchPage('ocorrencias')">Ocorrências</div>
+            <div class="tab" data-page="relatorios" onclick="switchPage('relatorios')">Relatórios</div>
+            <div class="tab" data-page="alertas" onclick="switchPage('alertas')">Alertas</div>
+        </div>
+    </nav>
+    
+    <!-- Conteúdo Principal -->
+    <main class="main-content" id="mainContent"></main>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <!-- Modal de Confirmação -->
+    <div class="modal-overlay" id="confirmModal" style="display: none;">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirmar ação</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" id="confirmCancelBtn">Cancelar</button>
+                <button class="btn-simad btn-simad-primary" id="confirmOkBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Atualizar Ocorrência -->
+    <div class="modal-overlay" id="updateOccurrenceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Atualizar ocorrência</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="updateStatus" class="form-select">
+                        <option value="pendente">Pendente</option>
+                        <option value="aprovado">Aprovado</option>
+                        <option value="em_andamento">Em andamento</option>
+                        <option value="resolvido">Resolvido</option>
+                        <option value="rejeitado">Rejeitado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Designar equipe</label>
+                    <select id="updateEquipe" class="form-select">
+                        <option value="">Selecione uma equipe</option>
+                        <option value="Equipe Alpha">Equipe Alpha (Centro/Zona Sul)</option>
+                        <option value="Equipe Bravo">Equipe Bravo (Zona Norte)</option>
+                        <option value="Equipe Charlie">Equipe Charlie (Botujuru)</option>
+                        <option value="Equipe Delta">Equipe Delta (Reserva)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Observação (opcional)</label>
+                    <textarea id="updateObs" class="form-textarea" rows="3" placeholder="Informações adicionais para o morador..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Comentário interno (só agentes)</label>
+                    <textarea id="updateComentarioInterno" class="form-textarea" rows="2" placeholder="Notas internas da equipe..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" onclick="closeModal('updateOccurrenceModal')">Cancelar</button>
+                <button class="btn-simad btn-simad-primary" onclick="confirmUpdateOccurrence()">Atualizar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Emitir Alerta -->
+    <div class="modal-overlay" id="alertModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Emitir alerta</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Título do alerta</label>
+                    <input type="text" id="alertTitulo" class="form-input" placeholder="Ex: Alerta de chuvas intensas">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descrição</label>
+                    <textarea id="alertDescricao" class="form-textarea" rows="3" placeholder="Descreva a situação, orientações e recomendações..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Severidade</label>
+                        <select id="alertNivel" class="form-select">
+                            <option value="baixo">Baixo</option>
+                            <option value="medio" selected>Médio</option>
+                            <option value="alto">Alto</option>
+                            <option value="critico">Crítico</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de validade</label>
+                        <input type="date" id="alertData" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bairros afetados</label>
+                    <select id="alertBairros" class="form-select" multiple size="4">
+                        <option value="Centro">Centro</option>
+                        <option value="Jardim Brasília">Jardim Brasília</option>
+                        <option value="Botujuru">Botujuru</option>
+                        <option value="Santa Maria">Santa Maria</option>
+                        <option value="Vila Nova">Vila Nova</option>
+                        <option value="Industrial">Industrial</option>
+                        <option value="Jardim Paulista">Jardim Paulista</option>
+                        <option value="Morro Grande">Morro Grande</option>
+                    </select>
+                    <small style="font-size: 11px; color: var(--gray-400);">Segure Ctrl (Cmd) para selecionar múltiplos bairros</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Canais de notificação</label>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <label><input type="checkbox" id="notifPush" checked> Push</label>
+                        <label><input type="checkbox" id="notifSMS" checked> SMS</label>
+                        <label><input type="checkbox" id="notifEmail"> E-mail</label>
+                        <label><input type="checkbox" id="notifWhats"> WhatsApp</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" onclick="closeModal('alertModal')">Cancelar</button>
+                <button class="btn-simad btn-simad-primary" onclick="confirmEmitirAlerta()">Emitir Alerta</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Perfil do Agente -->
+    <div class="modal-overlay" id="perfilModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Meu Perfil</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nome completo</label>
+                    <input type="text" id="perfilNome" class="form-input" readonly disabled style="background: var(--gray-100); cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">E-mail institucional</label>
+                    <input type="email" id="perfilEmail" class="form-input" readonly disabled style="background: var(--gray-100); cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefone</label>
+                    <input type="tel" id="perfilTelefone" class="form-input" placeholder="(11) 99999-9999">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cargo</label>
+                    <input type="text" id="perfilCargo" class="form-input" readonly disabled style="background: var(--gray-100); cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nova senha (opcional)</label>
+                    <input type="password" id="perfilNovaSenha" class="form-input" placeholder="Deixe em branco para manter a atual">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirmar nova senha</label>
+                    <input type="password" id="perfilConfirmarSenha" class="form-input" placeholder="Digite a nova senha novamente">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" onclick="closeModal('perfilModal')">Cancelar</button>
+                <button class="btn-simad btn-simad-primary" onclick="salvarPerfil()">Salvar alterações</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================
+        // DADOS MOCKADOS
+        // ============================================
+        let currentUser = null;
+        let selectedOccurrenceId = null;
+        let charts = {};
+        
+        let dashboardMap = null;
+        let mapaGeralMap = null;
+        
+        let usuarios = [
+            { id: 1, nome: "João Silva", email: "joao@email.com", senha: "123456", tipo: "morador" },
+            { id: 2, nome: "Maria Santos", email: "maria@email.com", senha: "123456", tipo: "morador" },
+            { id: 3, nome: "Carlos Pereira", email: "agente@defesacivil.com", senha: "admin123", tipo: "agente", cargo: "Coordenador de Operações", telefone: "(11) 97777-7777" }
+        ];
+        
+        let ocorrencias = [
+            { id: 1, titulo: "Queda de árvore", descricao: "Árvore de grande porte caída sobre a fiação elétrica, bloqueando completamente a rua.", endereco: "Rua Itália, 34 - Centro", bairro: "Centro", status: "pendente", urgencia: "alto", data: "2024-03-10T10:30:00", moradorId: 1, moradorNome: "João Silva", agenteStatus: null, equipe: null, comentarioInterno: null, lat: -23.2066, lng: -46.7721 },
+            { id: 2, titulo: "Alagamento", descricao: "Rua completamente alagada após chuva forte, água entrando nas residências.", endereco: "Av. Principal, 456 - Jardim Brasília", bairro: "Jardim Brasília", status: "em_andamento", urgencia: "medio", data: "2024-03-10T08:15:00", moradorId: 1, moradorNome: "João Silva", agenteStatus: "Equipe a caminho - previsão de chegada 30 minutos", equipe: "Equipe Alpha", comentarioInterno: "Aguardando retorno da equipe", lat: -23.2012, lng: -46.7619 },
+            { id: 3, titulo: "Risco de deslizamento", descricao: "Talude com fissuras após chuvas intensas, solo saturado e com risco iminente.", endereco: "Estrada do Botujuru, 500 - Botujuru", bairro: "Botujuru", status: "aprovado", urgencia: "alto", data: "2024-03-09T22:00:00", moradorId: 2, moradorNome: "Maria Santos", agenteStatus: "Vistoria agendada para o dia 11/03 às 14h", equipe: null, comentarioInterno: "Prioridade alta", lat: -23.2267, lng: -46.7895 },
+            { id: 4, titulo: "Incêndio em vegetação", descricao: "Foco de incêndio em área de mata próximo a residências.", endereco: "Estrada Velha, km 3 - Santa Maria", bairro: "Santa Maria", status: "resolvido", urgencia: "alto", data: "2024-03-08T15:30:00", moradorId: 2, moradorNome: "Maria Santos", agenteStatus: "Incêndio controlado - área em monitoramento", equipe: "Equipe Bravo", comentarioInterno: "Situação sob controle", lat: -23.1867, lng: -46.7455 }
+        ];
+        
+        let alertas = [
+            { id: 1, titulo: "Chuvas intensas", descricao: "Previsão de chuvas fortes nas próximas 24 horas. Acumulado pode chegar a 100mm.", nivel: "alto", bairros: ["Centro", "Jardim Brasília", "Santa Maria"], data: "2024-03-10", status: "ativo" },
+            { id: 2, titulo: "Ventos fortes", descricao: "Rajadas de vento de até 70km/h. Evite áreas arborizadas e não estacione próximo a árvores.", nivel: "medio", bairros: ["Todos os bairros"], data: "2024-03-09", status: "ativo" }
+        ];
+        
+        let relatorios = [
+            { id: 1, titulo: "Relatório de ocorrências - Março 2024", data: "10/03/2024", tipo: "Ocorrências" },
+            { id: 2, titulo: "Análise de riscos - Áreas de encosta", data: "05/03/2024", tipo: "Técnico" },
+            { id: 3, titulo: "Plano de contingência - Chuvas", data: "28/02/2024", tipo: "Planejamento" }
+        ];
+        
+        let estatisticas = {
+            porTipo: {
+                "Queda de árvore": 12,
+                "Alagamento": 8,
+                "Deslizamento": 5,
+                "Incêndio": 3,
+                "Risco de desabamento": 4,
+                "Ventos fortes": 2,
+                "Outros": 4
+            },
+            porBairro: {
+                "Centro": 8,
+                "Jardim Brasília": 6,
+                "Botujuru": 5,
+                "Santa Maria": 4,
+                "Vila Nova": 3,
+                "Industrial": 2,
+                "Jardim Paulista": 3,
+                "Morro Grande": 1
+            },
+            evolucao: {
+                "Segunda": 4,
+                "Terça": 6,
+                "Quarta": 3,
+                "Quinta": 7,
+                "Sexta": 5,
+                "Sábado": 2,
+                "Domingo": 1
+            }
+        };
+        
+        // ============================================
+        // FUNÇÕES DE UI
+        // ============================================
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '✓' : type === 'error' ? '✗' : '⚠'}</span><span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function showLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.add('active');
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.remove('active');
+        }
+        
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+        
+        function showConfirmDialog(message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const messageEl = document.getElementById('confirmMessage');
+            messageEl.textContent = message;
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            const handleConfirm = () => {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                if (onConfirm) onConfirm();
+                cleanup();
+            };
+            
+            const handleCancel = () => {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                cleanup();
+            };
+            
+            const cleanup = () => {
+                const confirmBtn = document.getElementById('confirmOkBtn');
+                const cancelBtn = document.getElementById('confirmCancelBtn');
+                if (confirmBtn) confirmBtn.onclick = null;
+                if (cancelBtn) cancelBtn.onclick = null;
+            };
+            
+            document.getElementById('confirmOkBtn').onclick = handleConfirm;
+            document.getElementById('confirmCancelBtn').onclick = handleCancel;
+        }
+        
+        // ============================================
+        // BOTÃO VOLTAR AO TOPO
+        // ============================================
+        function initBackToTop() {
+            const btn = document.createElement('button');
+            btn.className = 'btn-back-to-top';
+            btn.innerHTML = '↑';
+            btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.body.appendChild(btn);
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    btn.classList.add('visible');
+                } else {
+                    btn.classList.remove('visible');
+                }
+            });
+        }
+        
+        // ============================================
+        // STATUS DE CONEXÃO
+        // ============================================
+        function initConnectionStatus() {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'connection-status';
+            statusDiv.id = 'connectionStatus';
+            document.body.appendChild(statusDiv);
+            updateConnectionStatus();
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+        }
+        
+        function updateConnectionStatus() {
+            const statusDiv = document.getElementById('connectionStatus');
+            if (!statusDiv) return;
+            if (navigator.onLine) {
+                statusDiv.className = 'connection-status online';
+                statusDiv.innerHTML = '<span class="dot"></span> Conectado';
+            } else {
+                statusDiv.className = 'connection-status offline';
+                statusDiv.innerHTML = '<span class="dot"></span> Sem conexão';
+            }
+        }
+        
+        // ============================================
+        // ATALHOS DE TECLADO
+        // ============================================
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'd') {
+                    e.preventDefault();
+                    switchPage('dashboard');
+                }
+                if (e.ctrlKey && e.key === 'm') {
+                    e.preventDefault();
+                    switchPage('mapas');
+                }
+                if (e.ctrlKey && e.key === 'o') {
+                    e.preventDefault();
+                    switchPage('ocorrencias');
+                }
+                if (e.ctrlKey && e.key === 'a') {
+                    e.preventDefault();
+                    openAlertModal();
+                }
+                if (e.key === 'Escape') {
+                    const activeModals = document.querySelectorAll('.modal-overlay.active');
+                    activeModals.forEach(modal => {
+                        if (modal.id !== 'confirmModal') {
+                            closeModal(modal.id);
+                        }
+                    });
+                }
+            });
+        }
+        
+        // ============================================
+        // GRÁFICOS
+        // ============================================
+        function initCharts() {
+            const ctxTipo = document.getElementById('chartTipo')?.getContext('2d');
+            if (ctxTipo) {
+                if (charts.tipo) charts.tipo.destroy();
+                charts.tipo = new Chart(ctxTipo, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(estatisticas.porTipo),
+                        datasets: [{
+                            label: 'Número de ocorrências',
+                            data: Object.values(estatisticas.porTipo),
+                            backgroundColor: '#6B46C1',
+                            borderRadius: 8,
+                            barPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#E2E8F0' }, ticks: { stepSize: 1 } } }
+                    }
+                });
+            }
+            
+            const ctxBairro = document.getElementById('chartBairro')?.getContext('2d');
+            if (ctxBairro) {
+                if (charts.bairro) charts.bairro.destroy();
+                charts.bairro = new Chart(ctxBairro, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(estatisticas.porBairro),
+                        datasets: [{
+                            data: Object.values(estatisticas.porBairro),
+                            backgroundColor: ['#6B46C1', '#2B6CB0', '#DD6B20', '#38A169', '#E53E3E', '#D69E2E', '#3182CE', '#805AD5'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 10 } } }
+                    }
+                });
+            }
+            
+            const ctxEvolucao = document.getElementById('chartEvolucao')?.getContext('2d');
+            if (ctxEvolucao) {
+                if (charts.evolucao) charts.evolucao.destroy();
+                charts.evolucao = new Chart(ctxEvolucao, {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(estatisticas.evolucao),
+                        datasets: [{
+                            label: 'Ocorrências por dia',
+                            data: Object.values(estatisticas.evolucao),
+                            borderColor: '#DD6B20',
+                            backgroundColor: 'rgba(221, 107, 32, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#DD6B20',
+                            pointBorderColor: '#FFFFFF',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#E2E8F0' }, ticks: { stepSize: 1 } } }
+                    }
+                });
+            }
+        }
+        
+        // ============================================
+        // MAPAS CORRIGIDOS - VERSÃO DEFINITIVA
+        // ============================================
+        function initMapWithRetry(mapId, mapVariable, mapType, callback) {
+            return new Promise((resolve) => {
+                const tryInit = (attempt = 0) => {
+                    const container = document.getElementById(mapId);
+                    
+                    if (!container) {
+                        if (attempt < 10) {
+                            console.log(`Aguardando container ${mapId}... tentativa ${attempt + 1}`);
+                            setTimeout(() => tryInit(attempt + 1), 200);
+                        } else {
+                            console.error(`Container ${mapId} não encontrado após 10 tentativas`);
+                            resolve(null);
+                        }
+                        return;
+                    }
+                    
+                    const isVisible = container.offsetWidth > 0 && container.offsetHeight > 0;
+                    if (!isVisible && attempt < 10) {
+                        console.log(`Container ${mapId} não visível, aguardando...`);
+                        setTimeout(() => tryInit(attempt + 1), 200);
+                        return;
+                    }
+                    
+                    if (mapVariable) {
+                        try {
+                            mapVariable.off();
+                            mapVariable.remove();
+                        } catch(e) {}
+                    }
+                    
+                    try {
+                        const startLat = -23.207;
+                        const startLng = -46.77;
+                        
+                        const newMap = L.map(mapId).setView([startLat, startLng], 12);
+                        
+                        const lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '© OpenStreetMap'
+                        });
+                        
+                        const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                            maxZoom: 19,
+                            attribution: '© CARTO'
+                        });
+                        
+                        const isDark = document.documentElement.classList.contains('theme-dark');
+                        (isDark ? darkLayer : lightLayer).addTo(newMap);
+                        
+                        L.control.layers({'Mapa claro': lightLayer, 'Mapa escuro': darkLayer}, {}, {position: 'topright'}).addTo(newMap);
+                        L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(newMap);
+                        
+                        if (callback) callback(newMap);
+                        
+                        setTimeout(() => { newMap.invalidateSize(); }, 300);
+                        
+                        console.log(`Mapa ${mapId} inicializado com sucesso`);
+                        resolve(newMap);
+                    } catch (error) {
+                        console.error(`Erro ao inicializar ${mapId}:`, error);
+                        resolve(null);
+                    }
+                };
+                tryInit();
+            });
+        }
+        
+        async function initDashboardMap() {
+            dashboardMap = await initMapWithRetry('dashboardMap', dashboardMap, 'dashboard', (map) => {
+                if (map && typeof ocorrencias !== 'undefined') {
+                    ocorrencias.forEach(o => {
+                        let markerColor = '#38A169';
+                        if (o.status === 'pendente') markerColor = '#D69E2E';
+                        else if (o.status === 'em_andamento') markerColor = '#3182CE';
+                        else if (o.status === 'aprovado') markerColor = '#6B46C1';
+                        else if (o.status === 'resolvido') markerColor = '#38A169';
+                        else if (o.status === 'rejeitado') markerColor = '#E53E3E';
+                        
+                        const customIcon = L.divIcon({
+                            html: `<div style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`,
+                            iconSize: [16, 16],
+                            className: 'custom-marker'
+                        });
+                        
+                        L.marker([o.lat, o.lng], { icon: customIcon }).bindPopup(`
+                            <strong>${o.titulo}</strong><br>
+                            ${o.endereco}<br>
+                            <small>Status: ${o.status} | Urgência: ${o.urgencia}</small>
+                        `).addTo(map);
+                    });
+                }
+            });
+        }
+        
+        async function initMapaGeral() {
+            mapaGeralMap = await initMapWithRetry('mapaGeral', mapaGeralMap, 'mapaGeral', (map) => {
+                if (map && typeof ocorrencias !== 'undefined') {
+                    ocorrencias.forEach(o => {
+                        let markerColor = '#38A169';
+                        if (o.status === 'pendente') markerColor = '#D69E2E';
+                        else if (o.status === 'em_andamento') markerColor = '#3182CE';
+                        else if (o.status === 'aprovado') markerColor = '#6B46C1';
+                        else if (o.status === 'resolvido') markerColor = '#38A169';
+                        else if (o.status === 'rejeitado') markerColor = '#E53E3E';
+                        
+                        const customIcon = L.divIcon({
+                            html: `<div style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`,
+                            iconSize: [16, 16],
+                            className: 'custom-marker'
+                        });
+                        
+                        L.marker([o.lat, o.lng], { icon: customIcon }).bindPopup(`
+                            <strong>${o.titulo}</strong><br>
+                            ${o.endereco}<br>
+                            <small>Status: ${o.status} | Morador: ${o.moradorNome}</small>
+                        `).addTo(map);
+                    });
+                }
+                
+                if (map && typeof alertas !== 'undefined') {
+                    const startLat = -23.207;
+                    const startLng = -46.77;
+                    alertas.filter(a => a.status === 'ativo').forEach((alerta, index) => {
+                        const offset = index * 0.02;
+                        L.marker([startLat + offset, startLng + offset]).bindPopup(`
+                            <strong>⚠ ${alerta.titulo}</strong><br>
+                            ${alerta.descricao}<br>
+                            <small>Severidade: ${alerta.nivel} | Bairros: ${alerta.bairros.join(', ')}</small>
+                        `).addTo(map);
+                    });
+                }
+            });
+        }
+        
+        function refreshCurrentMap() {
+            const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
+            
+            setTimeout(() => {
+                if (activePage === 'dashboard' && dashboardMap) {
+                    dashboardMap.invalidateSize();
+                    console.log('DashboardMap refresh após troca de aba');
+                } else if (activePage === 'mapas' && mapaGeralMap) {
+                    mapaGeralMap.invalidateSize();
+                    console.log('MapaGeral refresh após troca de aba');
+                }
+            }, 200);
+        }
+        
+        window.addEventListener('themechanged', (e) => {
+            const mode = e.detail.mode;
+            
+            const updateMapTheme = (map) => {
+                if (!map) return;
+                
+                const center = map.getCenter();
+                const zoom = map.getZoom();
+                
+                map.eachLayer(layer => {
+                    if (layer instanceof L.TileLayer) {
+                        map.removeLayer(layer);
+                    }
+                });
+                
+                const newLayer = mode === 'dark'
+                    ? L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '© CARTO' })
+                    : L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+                
+                newLayer.addTo(map);
+                map.setView(center, zoom);
+                setTimeout(() => map.invalidateSize(), 100);
+            };
+            
+            updateMapTheme(dashboardMap);
+            updateMapTheme(mapaGeralMap);
+        });
+        
+        window.addEventListener('resize', () => {
+            setTimeout(() => {
+                if (dashboardMap) dashboardMap.invalidateSize();
+                if (mapaGeralMap) mapaGeralMap.invalidateSize();
+            }, 200);
+        });
+        
+        // ============================================
+        // DROPDOWN DO USUÁRIO
+        // ============================================
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.toggle('active');
+        }
+        
+        function closeDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.remove('active');
+        }
+        
+        document.addEventListener('click', function(event) {
+            const userMenu = document.getElementById('userMenu');
+            if (userMenu && !userMenu.contains(event.target)) {
+                closeDropdown();
+            }
+        });
+        
+        const userMenuElement = document.getElementById('userMenu');
+        if (userMenuElement) {
+            userMenuElement.addEventListener('click', function(event) {
+                event.stopPropagation();
+                toggleDropdown();
+            });
+        }
+        
+        // ============================================
+        // PERFIL DO AGENTE
+        // ============================================
+        function abrirPerfil() {
+            const perfilNome = document.getElementById('perfilNome');
+            const perfilEmail = document.getElementById('perfilEmail');
+            const perfilTelefone = document.getElementById('perfilTelefone');
+            const perfilCargo = document.getElementById('perfilCargo');
+            const perfilNovaSenha = document.getElementById('perfilNovaSenha');
+            const perfilConfirmarSenha = document.getElementById('perfilConfirmarSenha');
+            
+            if (perfilNome) perfilNome.value = currentUser.nome || '';
+            if (perfilEmail) perfilEmail.value = currentUser.email || '';
+            if (perfilTelefone) perfilTelefone.value = currentUser.telefone || '';
+            if (perfilCargo) perfilCargo.value = currentUser.cargo || '';
+            if (perfilNovaSenha) perfilNovaSenha.value = '';
+            if (perfilConfirmarSenha) perfilConfirmarSenha.value = '';
+            closeDropdown();
+            openModal('perfilModal');
+        }
+        
+        function salvarPerfil() {
+            const novaSenha = document.getElementById('perfilNovaSenha')?.value || '';
+            const confirmarSenha = document.getElementById('perfilConfirmarSenha')?.value || '';
+            
+            if (novaSenha && novaSenha !== confirmarSenha) {
+                showToast('As senhas não coincidem', 'error');
+                return;
+            }
+            
+            const perfilTelefone = document.getElementById('perfilTelefone');
+            if (perfilTelefone) currentUser.telefone = perfilTelefone.value;
+            if (novaSenha) currentUser.senha = novaSenha;
+            
+            const userIndex = usuarios.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                usuarios[userIndex] = currentUser;
+                localStorage.setItem('simad_usuarios', JSON.stringify(usuarios));
+            }
+            
+            localStorage.setItem('simad_user', JSON.stringify(currentUser));
+            showToast('Perfil atualizado com sucesso!', 'success');
+            closeModal('perfilModal');
+        }
+        
+        // ============================================
+        // EMERGÊNCIA
+        // ============================================
+        function ligarEmergencia() {
+            window.location.href = 'tel:199';
+            showToast('Ligando para Defesa Civil - 199', 'warning');
+        }
+        
+        // ============================================
+        // AUTENTICAÇÃO
+        // ============================================
+        function loadUser() {
+            const savedUser = localStorage.getItem('simad_user');
+            if (!savedUser) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            currentUser = JSON.parse(savedUser);
+            if (currentUser.tipo !== 'agente') {
+                window.location.href = 'morador.html';
+                return null;
+            }
+            const userNameSpan = document.getElementById('userName');
+            const userAvatarSpan = document.getElementById('userAvatar');
+            if (userNameSpan) userNameSpan.textContent = currentUser.nome.split(' ')[0];
+            if (userAvatarSpan) userAvatarSpan.textContent = currentUser.nome.charAt(0);
+            return currentUser;
+        }
+        
+        function logout() {
+            localStorage.removeItem('simad_user');
+            window.location.href = 'index.html';
+        }
+        
+        // ============================================
+        // NAVEGAÇÃO
+        // ============================================
+        function switchPage(pageName) {
+            showLoading();
+            setTimeout(() => {
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                const targetPage = document.getElementById(`page-${pageName}`);
+                if (targetPage) targetPage.classList.add('active');
+                
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                const activeTab = document.querySelector(`.tab[data-page="${pageName}"]`);
+                if (activeTab) activeTab.classList.add('active');
+                
+                if (pageName === 'mapas' && mapaGeralMap) {
+                    setTimeout(() => mapaGeralMap.invalidateSize(), 100);
+                }
+                if (pageName === 'dashboard' && dashboardMap) {
+                    setTimeout(() => dashboardMap.invalidateSize(), 100);
+                }
+                if (pageName === 'dashboard') {
+                    setTimeout(() => initCharts(), 150);
+                }
+                hideLoading();
+                refreshCurrentMap();
+            }, 300);
+        }
+        
+        // ============================================
+        // PÁGINA DASHBOARD
+        // ============================================
+        function renderDashboard() {
+            const pendentes = ocorrencias.filter(o => o.status === 'pendente').length;
+            const emAndamento = ocorrencias.filter(o => o.status === 'em_andamento').length;
+            const alertasAtivos = alertas.filter(a => a.status === 'ativo').length;
+            const total = ocorrencias.length;
+            
+            const dashboardHtml = `
+                <div class="page active" id="page-dashboard">
+                    <div class="kpi-grid">
+                        <div class="kpi-card"><div class="kpi-value">${pendentes}</div><div class="kpi-label">Chamados pendentes</div></div>
+                        <div class="kpi-card"><div class="kpi-value">${emAndamento}</div><div class="kpi-label">Em andamento</div></div>
+                        <div class="kpi-card"><div class="kpi-value">${alertasAtivos}</div><div class="kpi-label">Alertas ativos</div></div>
+                        <div class="kpi-card"><div class="kpi-value">${total}</div><div class="kpi-label">Total de ocorrências</div></div>
+                    </div>
+                    
+                    <div class="charts-grid">
+                        <div class="chart-card"><div class="chart-title">Ocorrências por tipo</div><div class="chart-container"><canvas id="chartTipo"></canvas></div></div>
+                        <div class="chart-card"><div class="chart-title">Ocorrências por bairro</div><div class="chart-container"><canvas id="chartBairro"></canvas></div></div>
+                        <div class="chart-card" style="grid-column: span 2;"><div class="chart-title">Evolução de ocorrências (últimos 7 dias)</div><div class="chart-container"><canvas id="chartEvolucao"></canvas></div></div>
+                    </div>
+                    
+                    <div class="map-card">
+                        <div class="map-header">
+                            <div class="map-title">Mapa de ocorrências</div>
+                        </div>
+                        <div id="dashboardMap" class="map-container"></div>
+                    </div>
+                    
+                    <div class="section-header">
+                        <div class="section-title">Chamados pendentes (${pendentes})</div>
+                    </div>
+                    <div class="ocorrencias-list">${renderPendentesList()}</div>
+                </div>
+            `;
+            
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) mainContent.innerHTML = dashboardHtml;
+            setTimeout(() => {
+                initDashboardMap();
+                initCharts();
+            }, 200);
+        }
+        
+        function renderPendentesList() {
+            const pendentes = ocorrencias.filter(o => o.status === 'pendente');
+            if (pendentes.length === 0) {
+                return '<div style="background: white; border-radius: var(--radius-lg); padding: 48px; text-align: center; border: 1px solid var(--gray-200); color: var(--gray-500);">Nenhum chamado pendente</div>';
+            }
+            
+            return pendentes.map(o => `
+                <div class="ocorrencia-card">
+                    <div class="ocorrencia-header">
+                        <div><div class="ocorrencia-titulo">${o.titulo}</div><div class="ocorrencia-endereco">${o.endereco}</div></div>
+                        <span class="badge badge-${o.status}">Pendente</span>
+                    </div>
+                    <div class="ocorrencia-descricao">${o.descricao}</div>
+                    <div class="ocorrencia-footer">
+                        <div class="ocorrencia-data">${formatarDataHora(o.data)}</div>
+                        <div class="ocorrencia-data">Morador: ${o.moradorNome}</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-action-success" onclick="openUpdateModal(${o.id}, 'aprovado')">Aprovar</button>
+                        <button class="btn-action btn-action-danger" onclick="openUpdateModal(${o.id}, 'rejeitado')">Rejeitar</button>
+                        <button class="btn-action btn-action-info" onclick="openUpdateModal(${o.id}, 'em_andamento')">Iniciar atendimento</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // ============================================
+        // PÁGINA MAPAS
+        // ============================================
+        function renderMapas() {
+            const mapasHtml = `
+                <div class="page" id="page-mapas">
+                    <div class="map-card">
+                        <div class="map-header">
+                            <div class="map-title">Mapa estratégico - Todas as ocorrências</div>
+                        </div>
+                        <div id="mapaGeral" class="map-container"></div>
+                    </div>
+                    <div class="section-header">
+                        <div class="section-title">Legenda</div>
+                    </div>
+                    <div style="display: flex; gap: 24px; flex-wrap: wrap; padding: 16px; background: white; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #D69E2E; border-radius: 50%;"></div><span>Pendente</span></div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #3182CE; border-radius: 50%;"></div><span>Em andamento</span></div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #6B46C1; border-radius: 50%;"></div><span>Aprovado</span></div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #38A169; border-radius: 50%;"></div><span>Resolvido</span></div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #E53E3E; border-radius: 50%;"></div><span>Rejeitado</span></div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #DD6B20; border-radius: 50%;"></div><span>Alerta ativo</span></div>
+                    </div>
+                </div>
+            `;
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) mainContent.innerHTML += mapasHtml;
+            setTimeout(() => initMapaGeral(), 200);
+        }
+        
+        // ============================================
+        // PÁGINA OCORRÊNCIAS COM FILTROS
+        // ============================================
+        function renderOcorrencias() {
+            const ocorrenciasHtml = `
+                <div class="page" id="page-ocorrencias">
+                    <div class="filters-container">
+                        <div class="filter-group"><span class="filter-label">Status:</span><select id="statusFilter" class="filter-select" onchange="filterOcorrencias()"><option value="todos">Todos</option><option value="pendente">Pendentes</option><option value="em_andamento">Em andamento</option><option value="aprovado">Aprovados</option><option value="resolvido">Resolvidos</option><option value="rejeitado">Rejeitados</option></select></div>
+                        <div class="filter-group"><span class="filter-label">Urgência:</span><select id="urgenciaFilter" class="filter-select" onchange="filterOcorrencias()"><option value="todos">Todas</option><option value="baixo">Baixa</option><option value="medio">Média</option><option value="alto">Alta</option><option value="critico">Crítica</option></select></div>
+                        <div class="filter-group"><span class="filter-label">Bairro:</span><select id="bairroFilter" class="filter-select" onchange="filterOcorrencias()"><option value="todos">Todos</option><option value="Centro">Centro</option><option value="Jardim Brasília">Jardim Brasília</option><option value="Botujuru">Botujuru</option><option value="Santa Maria">Santa Maria</option><option value="Vila Nova">Vila Nova</option><option value="Industrial">Industrial</option><option value="Jardim Paulista">Jardim Paulista</option><option value="Morro Grande">Morro Grande</option></select></div>
+                        <div class="filter-group"><span class="filter-label">Busca:</span><input type="text" id="searchInput" class="filter-input" placeholder="Título, endereço..." onkeyup="filterOcorrencias()"></div>
+                    </div>
+                    <div id="ocorrenciasListContainer" class="ocorrencias-list"></div>
+                </div>
+            `;
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) mainContent.innerHTML += ocorrenciasHtml;
+            filterOcorrencias();
+        }
+        
+        function filterOcorrencias() {
+            let filtered = [...ocorrencias];
+            const statusFilter = document.getElementById('statusFilter')?.value || 'todos';
+            const urgenciaFilter = document.getElementById('urgenciaFilter')?.value || 'todos';
+            const bairroFilter = document.getElementById('bairroFilter')?.value || 'todos';
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            
+            if (statusFilter !== 'todos') filtered = filtered.filter(o => o.status === statusFilter);
+            if (urgenciaFilter !== 'todos') filtered = filtered.filter(o => o.urgencia === urgenciaFilter);
+            if (bairroFilter !== 'todos') filtered = filtered.filter(o => o.bairro === bairroFilter);
+            if (searchTerm) filtered = filtered.filter(o => o.titulo.toLowerCase().includes(searchTerm) || o.endereco.toLowerCase().includes(searchTerm));
+            
+            const container = document.getElementById('ocorrenciasListContainer');
+            if (!container) return;
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="background: white; border-radius: var(--radius-lg); padding: 48px; text-align: center; border: 1px solid var(--gray-200); color: var(--gray-500);">Nenhuma ocorrência encontrada</div>';
+                return;
+            }
+            container.innerHTML = filtered.map(o => `
+                <div class="ocorrencia-card">
+                    <div class="ocorrencia-header">
+                        <div><div class="ocorrencia-titulo">${o.titulo}</div><div class="ocorrencia-endereco">${o.endereco}</div></div>
+                        <span class="badge badge-${o.status}">${getStatusText(o.status)}</span>
+                    </div>
+                    <div class="ocorrencia-descricao">${o.descricao}</div>
+                    <div class="ocorrencia-footer">
+                        <div class="ocorrencia-data">${formatarDataHora(o.data)}</div>
+                        <div class="ocorrencia-data">Morador: ${o.moradorNome} | Urgência: ${o.urgencia}</div>
+                    </div>
+                    ${o.agenteStatus ? `<div style="background: var(--gray-100); padding: 8px 12px; border-radius: var(--radius-md); margin-top: 12px; font-size: 12px;"><strong>Última atualização:</strong> ${o.agenteStatus}</div>` : ''}
+                    ${o.comentarioInterno ? `<div style="background: var(--primary-purple-light); padding: 8px 12px; border-radius: var(--radius-md); margin-top: 8px; font-size: 12px;"><strong>Nota interna:</strong> ${o.comentarioInterno}</div>` : ''}
+                    <div class="action-buttons"><button class="btn-action btn-action-info" onclick="openUpdateModal(${o.id}, '${o.status}')">Atualizar status</button></div>
+                </div>
+            `).join('');
+        }
+        
+        function getStatusText(status) {
+            const map = { 'pendente': 'Pendente', 'em_andamento': 'Em andamento', 'aprovado': 'Aprovado', 'resolvido': 'Resolvido', 'rejeitado': 'Rejeitado' };
+            return map[status] || status;
+        }
+        
+        // ============================================
+        // ATUALIZAR OCORRÊNCIA
+        // ============================================
+        function openUpdateModal(occurrenceId, currentStatus) {
+            selectedOccurrenceId = occurrenceId;
+            const occurrence = ocorrencias.find(o => o.id === occurrenceId);
+            const statusSelect = document.getElementById('updateStatus');
+            const obsTextarea = document.getElementById('updateObs');
+            const comentarioTextarea = document.getElementById('updateComentarioInterno');
+            const equipeSelect = document.getElementById('updateEquipe');
+            if (statusSelect) statusSelect.value = currentStatus;
+            if (obsTextarea) obsTextarea.value = occurrence?.agenteStatus || '';
+            if (comentarioTextarea) comentarioTextarea.value = occurrence?.comentarioInterno || '';
+            if (equipeSelect) equipeSelect.value = occurrence?.equipe || '';
+            openModal('updateOccurrenceModal');
+        }
+        
+        function confirmUpdateOccurrence() {
+            showConfirmDialog('Deseja realmente atualizar esta ocorrência? O morador será notificado.', () => {
+                const newStatus = document.getElementById('updateStatus').value;
+                const obs = document.getElementById('updateObs').value;
+                const comentarioInterno = document.getElementById('updateComentarioInterno').value;
+                const equipe = document.getElementById('updateEquipe').value;
+                
+                const occurrence = ocorrencias.find(o => o.id === selectedOccurrenceId);
+                if (occurrence) {
+                    occurrence.status = newStatus;
+                    if (obs) occurrence.agenteStatus = obs;
+                    if (comentarioInterno) occurrence.comentarioInterno = comentarioInterno;
+                    if (equipe) occurrence.equipe = equipe;
+                    saveData();
+                    showToast(`Ocorrência #${selectedOccurrenceId} atualizada para ${getStatusText(newStatus)}`, 'success');
+                    
+                    const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
+                    if (activePage === 'dashboard') {
+                        renderDashboard();
+                    } else if (activePage === 'ocorrencias') {
+                        filterOcorrencias();
+                    } else if (activePage === 'mapas') {
+                        initMapaGeral();
+                    }
+                }
+                closeModal('updateOccurrenceModal');
+            });
+        }
+        
+        // ============================================
+        // PÁGINA RELATÓRIOS
+        // ============================================
+        function renderRelatorios() {
+            const relatoriosHtml = `
+                <div class="page" id="page-relatorios">
+                    <div class="section-header">
+                        <div class="section-title">Relatórios e exportações</div>
+                        <div class="filter-group">
+                            <button class="btn-simad btn-simad-primary" onclick="gerarRelatorio()">+ Gerar novo relatório</button>
+                            <button class="btn-simad btn-simad-outline" onclick="exportarCSV()">Exportar CSV</button>
+                            <button class="btn-simad btn-simad-outline" onclick="gerarRelatorioPDF()">Gerar PDF</button>
+                        </div>
+                    </div>
+                    <div class="reports-grid">
+                        ${relatorios.map(r => `
+                            <div class="report-card">
+                                <div class="report-title">${r.titulo}</div>
+                                <div class="report-date">${r.data} • ${r.tipo}</div>
+                                <button class="btn-action btn-action-outline" onclick="baixarRelatorio(${r.id})">Baixar PDF</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) mainContent.innerHTML += relatoriosHtml;
+        }
+        
+        function gerarRelatorio() {
+            const novoRelatorio = {
+                id: relatorios.length + 1,
+                titulo: `Relatório de ocorrências - ${new Date().toLocaleDateString('pt-BR')}`,
+                data: new Date().toLocaleDateString('pt-BR'),
+                tipo: "Exportação"
+            };
+            relatorios.unshift(novoRelatorio);
+            saveData();
+            renderRelatorios();
+            showToast('Relatório gerado com sucesso', 'success');
+        }
+        
+        function baixarRelatorio(id) {
+            showToast(`Download do relatório #${id} iniciado (simulação)`, 'success');
+        }
+        
+        function exportarCSV() {
+            const headers = ['ID', 'Título', 'Descrição', 'Endereço', 'Status', 'Urgência', 'Data', 'Morador'];
+            const rows = ocorrencias.map(o => [o.id, o.titulo, o.descricao, o.endereco, o.status, o.urgencia, formatarDataHora(o.data), o.moradorNome]);
+            const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `ocorrencias_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('CSV exportado com sucesso!', 'success');
+        }
+        
+        function gerarRelatorioPDF() {
+            showToast('PDF gerado com sucesso! (Simulação)', 'success');
+        }
+        
+        // ============================================
+        // PÁGINA ALERTAS
+        // ============================================
+        function openAlertModal() {
+            const tituloInput = document.getElementById('alertTitulo');
+            const descricaoTextarea = document.getElementById('alertDescricao');
+            const dataInput = document.getElementById('alertData');
+            if (tituloInput) tituloInput.value = '';
+            if (descricaoTextarea) descricaoTextarea.value = '';
+            if (dataInput) dataInput.value = '';
+            const notifPush = document.getElementById('notifPush');
+            const notifSMS = document.getElementById('notifSMS');
+            const notifEmail = document.getElementById('notifEmail');
+            const notifWhats = document.getElementById('notifWhats');
+            if (notifPush) notifPush.checked = true;
+            if (notifSMS) notifSMS.checked = true;
+            if (notifEmail) notifEmail.checked = false;
+            if (notifWhats) notifWhats.checked = false;
+            openModal('alertModal');
+        }
+        
+        function confirmEmitirAlerta() {
+            const titulo = document.getElementById('alertTitulo')?.value || '';
+            const descricao = document.getElementById('alertDescricao')?.value || '';
+            if (!titulo || !descricao) {
+                showToast('Preencha título e descrição do alerta', 'error');
+                return;
+            }
+            showConfirmDialog(`Deseja emitir o alerta "${titulo}" para a população?`, () => emitirAlerta());
+        }
+        
+        function emitirAlerta() {
+            const titulo = document.getElementById('alertTitulo')?.value || '';
+            const descricao = document.getElementById('alertDescricao')?.value || '';
+            const nivel = document.getElementById('alertNivel')?.value || 'medio';
+            const bairrosSelect = document.getElementById('alertBairros');
+            const bairros = bairrosSelect ? Array.from(bairrosSelect.selectedOptions).map(opt => opt.value) : [];
+            const data = document.getElementById('alertData')?.value || new Date().toLocaleDateString('pt-BR');
+            
+            if (bairros.length === 0) {
+                showToast('Selecione pelo menos um bairro', 'error');
+                return;
+            }
+            
+            const novoAlerta = { id: alertas.length + 1, titulo, descricao, nivel, bairros, data, status: 'ativo' };
+            alertas.push(novoAlerta);
+            saveData();
+            closeModal('alertModal');
+            showToast(`Alerta "${titulo}" emitido com sucesso para ${bairros.length} bairros!`, 'success');
+            const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
+            if (activePage === 'alertas') renderAlertas();
+        }
+        
+        function renderAlertas() {
+            const alertasAtivos = alertas.filter(a => a.status === 'ativo');
+            const alertasExpirados = alertas.filter(a => a.status !== 'ativo');
+            
+            const alertasHtml = `
+                <div class="page" id="page-alertas">
+                    <div class="section-header">
+                        <div class="section-title">Alertas ativos</div>
+                        <button class="btn-simad btn-simad-primary" onclick="openAlertModal()">+ Novo alerta</button>
+                    </div>
+                    <div class="ocorrencias-list">
+                        ${alertasAtivos.length === 0 ? '<div style="background: white; border-radius: var(--radius-lg); padding: 32px; text-align: center;">Nenhum alerta ativo</div>' : 
+                            alertasAtivos.map(a => `
+                                <div class="ocorrencia-card">
+                                    <div class="ocorrencia-header">
+                                        <div><div class="ocorrencia-titulo">${a.titulo}</div><div class="ocorrencia-endereco">Bairros: ${a.bairros.join(', ')}</div></div>
+                                        <span class="badge" style="background: ${a.nivel === 'alto' ? '#E53E3E20' : '#DD6B2020'}; color: ${a.nivel === 'alto' ? '#E53E3E' : '#DD6B20'};">${a.nivel === 'alto' ? 'Alto' : 'Médio'}</span>
+                                    </div>
+                                    <div class="ocorrencia-descricao">${a.descricao}</div>
+                                    <div class="ocorrencia-footer">
+                                        <div class="ocorrencia-data">Emissão: ${a.data}</div>
+                                        <button class="btn-action btn-action-danger" onclick="cancelarAlerta(${a.id})">Cancelar alerta</button>
+                                    </div>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                    <div class="section-header" style="margin-top: 32px;"><div class="section-title">Histórico de alertas</div></div>
+                    <div class="ocorrencias-list">
+                        ${alertasExpirados.length === 0 ? '<div style="background: white; border-radius: var(--radius-lg); padding: 32px; text-align: center;">Nenhum alerta no histórico</div>' :
+                            alertasExpirados.map(a => `
+                                <div class="ocorrencia-card">
+                                    <div class="ocorrencia-header">
+                                        <div><div class="ocorrencia-titulo">${a.titulo}</div><div class="ocorrencia-endereco">Bairros: ${a.bairros.join(', ')}</div></div>
+                                        <span class="badge" style="background: var(--gray-200); color: var(--gray-500);">Expirado</span>
+                                    </div>
+                                    <div class="ocorrencia-descricao">${a.descricao}</div>
+                                    <div class="ocorrencia-footer"><div class="ocorrencia-data">Emissão: ${a.data}</div></div>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+            `;
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) mainContent.innerHTML += alertasHtml;
+        }
+        
+        function cancelarAlerta(id) {
+            showConfirmDialog('Deseja cancelar este alerta? A população será notificada.', () => {
+                const alerta = alertas.find(a => a.id === id);
+                if (alerta) {
+                    alerta.status = 'expirado';
+                    saveData();
+                    renderAlertas();
+                    showToast(`Alerta "${alerta.titulo}" cancelado`, 'warning');
+                }
+            });
+        }
+        
+        // ============================================
+        // FUNÇÕES AUXILIARES
+        // ============================================
+        function formatarDataHora(dataStr) {
+            const data = new Date(dataStr);
+            return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function saveData() {
+            localStorage.setItem('simad_ocorrencias', JSON.stringify(ocorrencias));
+            localStorage.setItem('simad_alertas', JSON.stringify(alertas));
+            localStorage.setItem('simad_relatorios', JSON.stringify(relatorios));
+        }
+        
+        function loadSavedData() {
+            const savedOcorrencias = localStorage.getItem('simad_ocorrencias');
+            const savedAlertas = localStorage.getItem('simad_alertas');
+            const savedRelatorios = localStorage.getItem('simad_relatorios');
+            if (savedOcorrencias) ocorrencias = JSON.parse(savedOcorrencias);
+            if (savedAlertas) alertas = JSON.parse(savedAlertas);
+            if (savedRelatorios) relatorios = JSON.parse(savedRelatorios);
+        }
+        
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
+        function init() {
+            if (!loadUser()) return;
+            loadSavedData();
+            renderDashboard();
+            renderMapas();
+            renderOcorrencias();
+            renderRelatorios();
+            renderAlertas();
+            initBackToTop();
+            initConnectionStatus();
+            setupKeyboardShortcuts();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
