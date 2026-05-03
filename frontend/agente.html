@@ -2035,32 +2035,47 @@
         // ============================================
         // PÁGINA MAPAS
         // ============================================
-        function renderMapas() {
-            const mapasHtml = `
-                <div class="page" id="page-mapas">
-                    <div class="map-card">
-                        <div class="map-header">
-                            <div class="map-title">Mapa estratégico - Todas as ocorrências</div>
-                        </div>
-                        <div id="mapaGeral" class="map-container"></div>
-                    </div>
-                    <div class="section-header">
-                        <div class="section-title">Legenda</div>
-                    </div>
-                    <div style="display: flex; gap: 24px; flex-wrap: wrap; padding: 16px; background: white; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); margin-bottom: 16px;">
-                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #D69E2E; border-radius: 50%;"></div><span>Pendente</span></div>
-                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #3182CE; border-radius: 50%;"></div><span>Em andamento</span></div>
-                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #6B46C1; border-radius: 50%;"></div><span>Aprovado</span></div>
-                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #38A169; border-radius: 50%;"></div><span>Resolvido</span></div>
-                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #E53E3E; border-radius: 50%;"></div><span>Rejeitado</span></div>
-                        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #DD6B20; border-radius: 50%;"></div><span>Alerta ativo</span></div>
-                    </div>
+function renderMapas() {
+    const mapasHtml = `
+        <div class="page" id="page-mapas">
+            <div class="map-card">
+                <div class="map-header">
+                    <div class="map-title">Mapa estratégico - Todas as ocorrências</div>
                 </div>
-            `;
-            const mainContent = document.getElementById('mainContent');
-            if (mainContent) mainContent.innerHTML += mapasHtml;
-            setTimeout(() => initMapaGeral(), 200);
-        }
+                <div id="mapaGeral" class="map-container"></div>
+            </div>
+
+            <!-- NOVO MAPA (CHUVA AGORA) -->
+            <div class="map-card" style="margin-top:16px;">
+                <div class="map-header">
+                    <div class="map-title">Mapa Pluviométrico</div>
+                </div>
+                <iframe 
+                    src="https://cth.daee.sp.gov.br/sibh/chuva_agora/"
+                    style="width: 100%; height: 500px; border: none; border-radius: 12px;">
+                </iframe>
+            </div>
+
+            <div class="section-header">
+                <div class="section-title">Legenda</div>
+            </div>
+
+            <div style="display: flex; gap: 24px; flex-wrap: wrap; padding: 16px; background: white; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #D69E2E; border-radius: 50%;"></div><span>Pendente</span></div>
+                <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #3182CE; border-radius: 50%;"></div><span>Em andamento</span></div>
+                <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #6B46C1; border-radius: 50%;"></div><span>Aprovado</span></div>
+                <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #38A169; border-radius: 50%;"></div><span>Resolvido</span></div>
+                <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #E53E3E; border-radius: 50%;"></div><span>Rejeitado</span></div>
+                <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 12px; height: 12px; background: #DD6B20; border-radius: 50%;"></div><span>Alerta ativo</span></div>
+            </div>
+        </div>
+    `;
+
+    const mainContent = document.getElementById('mainContent');
+    if (mainContent) mainContent.innerHTML += mapasHtml;
+
+    setTimeout(() => initMapaGeral(), 200);
+}
         
         // ============================================
         // PÁGINA OCORRÊNCIAS COM FILTROS
