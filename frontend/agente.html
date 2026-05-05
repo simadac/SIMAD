@@ -763,6 +763,71 @@
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
+
+        /* Upload */
+        .upload-area {
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-top: 12px;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-purple);
+            background: var(--gray-50);
+        }
+        
+        .upload-area.drag-over {
+            border-color: var(--primary-purple);
+            background: var(--primary-purple-light);
+        }
+        
+        .preview-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        
+        .preview-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        
+        .preview-img {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .remove-foto {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--status-danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        
+        .remove-foto:hover {
+            background: #C53030;
+            transform: scale(1.1);
+        }
         
         /* ============================================
            MODAL
@@ -1149,6 +1214,9 @@
                 <button class="btn-simad btn-simad-danger" onclick="ligarEmergencia()">
                     <span>Emergência 199</span>
                 </button>
+                <button class="btn-simad btn-simad-primary" onclick="openNovaOcorrenciaModal()">
+                    <span>+</span> <span>Nova ocorrência</span>
+                </button>
                 <button class="btn-simad btn-simad-primary" onclick="openAlertModal()">
                     <span>⚠</span> <span>Emitir Alerta</span>
                 </button>
@@ -1243,6 +1311,99 @@
             <div class="modal-footer">
                 <button class="btn-simad btn-simad-secondary" onclick="closeModal('updateOccurrenceModal')">Cancelar</button>
                 <button class="btn-simad btn-simad-primary" onclick="confirmUpdateOccurrence()">Atualizar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Nova Ocorrência do Agente -->
+    <div class="modal-overlay" id="novaOcorrenciaModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nova ocorrência</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Título da ocorrência</label>
+                    <input type="text" id="novaTitulo" class="form-input" placeholder="Ex: Queda de árvore">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tipo</label>
+                        <select id="novaTipo" class="form-select">
+                            <option value="Queda de árvore">Queda de árvore</option>
+                            <option value="Alagamento">Alagamento</option>
+                            <option value="Deslizamento">Deslizamento</option>
+                            <option value="Incêndio">Incêndio</option>
+                            <option value="Risco de desabamento">Risco de desabamento</option>
+                            <option value="Ventos fortes">Ventos fortes</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Urgência</label>
+                        <select id="novaUrgencia" class="form-select">
+                            <option value="baixo">Baixa</option>
+                            <option value="medio" selected>Média</option>
+                            <option value="alto">Alta</option>
+                            <option value="critico">Crítica</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descrição</label>
+                    <textarea id="novaDescricao" class="form-textarea" rows="3" placeholder="Descreva a situação encontrada ou informada ao agente..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">CEP</label>
+                        <input type="text" id="novaCep" class="form-input" placeholder="Ex: 13230-000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Bairro</label>
+                        <select id="novaBairro" class="form-select">
+                            <option value="Centro">Centro</option>
+                            <option value="Jardim Brasília">Jardim Brasília</option>
+                            <option value="Botujuru">Botujuru</option>
+                            <option value="Santa Maria">Santa Maria</option>
+                            <option value="Vila Nova">Vila Nova</option>
+                            <option value="Industrial">Industrial</option>
+                            <option value="Jardim Paulista">Jardim Paulista</option>
+                            <option value="Morro Grande">Morro Grande</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Endereço</label>
+                    <input type="text" id="novaEndereco" class="form-input" placeholder="Rua, número e referência">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Latitude (opcional)</label>
+                        <input type="number" id="novaLatitude" class="form-input" step="any" placeholder="Ex: -23.207">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude (opcional)</label>
+                        <input type="number" id="novaLongitude" class="form-input" step="any" placeholder="Ex: -46.770">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fotos da ocorrência (opcional)</label>
+                    <div class="upload-area" id="uploadAreaAgente" onclick="document.getElementById('fotoInputAgente').click()">
+                        <span>Clique ou arraste fotos aqui</span>
+                        <small style="display: block; font-size: 11px; margin-top: 4px;">Formatos: JPG, PNG (máx. 5MB por foto)</small>
+                    </div>
+                    <input type="file" id="fotoInputAgente" multiple accept="image/jpeg,image/png" style="display: none;" onchange="previewFotosAgente(this.files)">
+                    <div class="preview-container" id="previewContainerAgente"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Observação do agente</label>
+                    <textarea id="novaObservacao" class="form-textarea" rows="2" placeholder="Ex: Ocorrência registrada por ligação telefônica ou vistoria em campo."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-simad btn-simad-secondary" onclick="closeModal('novaOcorrenciaModal')">Cancelar</button>
+                <button class="btn-simad btn-simad-primary" onclick="confirmCadastrarOcorrenciaAgente()">Cadastrar ocorrência</button>
             </div>
         </div>
     </div>
@@ -1357,6 +1518,7 @@
         
         let dashboardMap = null;
         let mapaGeralMap = null;
+        let fotosAgenteTemp = [];
         
         let usuarios = [
             { id: 1, nome: "João Silva", email: "joao@email.com", senha: "123456", tipo: "morador" },
@@ -2068,6 +2230,12 @@
         function renderOcorrencias() {
             const ocorrenciasHtml = `
                 <div class="page" id="page-ocorrencias">
+                    <div class="section-header">
+                        <div class="section-title">Ocorrências registradas</div>
+                        <button class="btn-simad btn-simad-primary" onclick="openNovaOcorrenciaModal()">
+                            <span>+</span> <span>Nova ocorrência</span>
+                        </button>
+                    </div>
                     <div class="filters-container">
                         <div class="filter-group"><span class="filter-label">Status:</span><select id="statusFilter" class="filter-select" onchange="filterOcorrencias()"><option value="todos">Todos</option><option value="pendente">Pendentes</option><option value="em_andamento">Em andamento</option><option value="aprovado">Aprovados</option><option value="resolvido">Resolvidos</option><option value="rejeitado">Rejeitados</option></select></div>
                         <div class="filter-group"><span class="filter-label">Urgência:</span><select id="urgenciaFilter" class="filter-select" onchange="filterOcorrencias()"><option value="todos">Todas</option><option value="baixo">Baixa</option><option value="medio">Média</option><option value="alto">Alta</option><option value="critico">Crítica</option></select></div>
@@ -2124,6 +2292,181 @@
         }
         
         // ============================================
+        // NOVA OCORRÊNCIA PELO AGENTE
+        // ============================================
+        function openNovaOcorrenciaModal() {
+            const latInput = document.getElementById('novaLatitude');
+            const lngInput = document.getElementById('novaLongitude');
+            if (latInput && !latInput.value) latInput.value = '-23.207';
+            if (lngInput && !lngInput.value) lngInput.value = '-46.770';
+            openModal('novaOcorrenciaModal');
+        }
+
+        function limparFormularioNovaOcorrencia() {
+            const campos = ['novaTitulo', 'novaDescricao', 'novaCep', 'novaEndereco', 'novaLatitude', 'novaLongitude', 'novaObservacao'];
+            campos.forEach(id => {
+                const campo = document.getElementById(id);
+                if (campo) campo.value = '';
+            });
+            const tipo = document.getElementById('novaTipo');
+            const urgencia = document.getElementById('novaUrgencia');
+            const bairro = document.getElementById('novaBairro');
+            if (tipo) tipo.value = 'Queda de árvore';
+            if (urgencia) urgencia.value = 'medio';
+            if (bairro) bairro.value = 'Centro';
+
+            fotosAgenteTemp = [];
+            const fotoInputAgente = document.getElementById('fotoInputAgente');
+            const previewContainerAgente = document.getElementById('previewContainerAgente');
+            if (fotoInputAgente) fotoInputAgente.value = '';
+            if (previewContainerAgente) previewContainerAgente.innerHTML = '';
+        }
+
+
+        function previewFotosAgente(files) {
+            const previewContainer = document.getElementById('previewContainerAgente');
+            if (!previewContainer) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type.startsWith('image/')) continue;
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast(`Foto ${file.name} excede 5MB`, 'error');
+                    continue;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fotosAgenteTemp.push(e.target.result);
+                    renderPreviewFotosAgente();
+                };
+                reader.readAsDataURL(file);
+            }
+
+            const fotoInput = document.getElementById('fotoInputAgente');
+            if (fotoInput) fotoInput.value = '';
+        }
+
+        function renderPreviewFotosAgente() {
+            const previewContainer = document.getElementById('previewContainerAgente');
+            if (!previewContainer) return;
+
+            previewContainer.innerHTML = '';
+            fotosAgenteTemp.forEach((foto, index) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <img src="${foto}" class="preview-img" alt="Foto da ocorrência">
+                    <button class="remove-foto" onclick="removerFotoAgente(${index})" title="Remover foto">×</button>
+                `;
+                previewContainer.appendChild(previewItem);
+            });
+        }
+
+        function removerFotoAgente(index) {
+            fotosAgenteTemp.splice(index, 1);
+            renderPreviewFotosAgente();
+        }
+
+        function setupDragAndDropAgente() {
+            const uploadArea = document.getElementById('uploadAreaAgente');
+            if (!uploadArea) return;
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                previewFotosAgente(e.dataTransfer.files);
+            });
+        }
+
+        async function confirmCadastrarOcorrenciaAgente() {
+            const titulo = document.getElementById('novaTitulo')?.value.trim();
+            const descricao = document.getElementById('novaDescricao')?.value.trim();
+            const endereco = document.getElementById('novaEndereco')?.value.trim();
+
+            if (!titulo || !descricao || !endereco) {
+                showToast('Preencha título, descrição e endereço da ocorrência.', 'warning');
+                return;
+            }
+
+            const tipo = document.getElementById('novaTipo')?.value || 'Outros';
+            const bairro = document.getElementById('novaBairro')?.value || '';
+            const observacao = document.getElementById('novaObservacao')?.value.trim() || 'Ocorrência cadastrada diretamente pelo agente.';
+
+            const novaOcorrencia = {
+                titulo: titulo,
+                tipo_ocorrencia: tipo,
+                descricao: descricao,
+                cep: document.getElementById('novaCep')?.value.trim() || '',
+                endereco: endereco,
+                bairro: bairro,
+                cidade: 'Campo Limpo Paulista',
+                estado: 'SP',
+                latitude: document.getElementById('novaLatitude')?.value || -23.207,
+                longitude: document.getElementById('novaLongitude')?.value || -46.770,
+                urgencia: document.getElementById('novaUrgencia')?.value || 'medio',
+                id_morador: currentUser?.id || 3,
+                id_agente: currentUser?.id || 3,
+                observacao_agente: observacao,
+                fotos: [...fotosAgenteTemp]
+            };
+
+            try {
+                showLoading();
+                const resposta = await fetch(`${API_URL}/ocorrencias`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novaOcorrencia),
+                });
+                const resultado = await resposta.json();
+                if (!resposta.ok) throw new Error(resultado.erro || 'Erro ao cadastrar ocorrência');
+
+                ocorrencias.unshift({
+                    id: resultado.id || Date.now(),
+                    titulo: titulo,
+                    descricao: descricao,
+                    endereco: endereco,
+                    bairro: bairro,
+                    status: 'pendente',
+                    urgencia: novaOcorrencia.urgencia,
+                    data: new Date().toISOString(),
+                    moradorId: novaOcorrencia.id_morador,
+                    moradorNome: currentUser?.nome ? `Agente: ${currentUser.nome}` : 'Agente da Defesa Civil',
+                    agenteStatus: observacao,
+                    equipe: null,
+                    comentarioInterno: 'Ocorrência criada pelo painel do agente',
+                    lat: Number(novaOcorrencia.latitude),
+                    lng: Number(novaOcorrencia.longitude),
+                    fotos: [...fotosAgenteTemp],
+                });
+
+                saveData();
+                limparFormularioNovaOcorrencia();
+                closeModal('novaOcorrenciaModal');
+                showToast('Ocorrência cadastrada com sucesso.', 'success');
+
+                const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
+                if (activePage === 'dashboard') renderDashboard();
+                else if (activePage === 'ocorrencias') filterOcorrencias();
+                else if (activePage === 'mapas') initMapaGeral();
+            } catch (erro) {
+                console.error('Erro ao cadastrar ocorrência:', erro);
+                showToast(`Erro: ${erro.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ============================================
         // ATUALIZAR OCORRÊNCIA
         // ============================================
         function openUpdateModal(occurrenceId, currentStatus) {
@@ -2140,32 +2483,105 @@
             openModal('updateOccurrenceModal');
         }
         
+        // URL base da API Flask — altere se o servidor rodar em outra porta
+        const API_URL = 'http://localhost:5000/api';
+
+        // ============================================
+        // CONSULTA GERAL DE OCORRÊNCIAS — API
+        // ============================================
+        async function carregarTodasOcorrencias() {
+            // Lê filtros ativos da tela
+            const filtroStatus = document.getElementById('statusFilter')?.value  || '';
+            const filtroBairro = document.getElementById('bairroFilter')?.value  || '';
+
+            const params = new URLSearchParams();
+            if (filtroStatus && filtroStatus !== 'todos') params.append('status', filtroStatus);
+            if (filtroBairro && filtroBairro !== 'todos') params.append('bairro', filtroBairro);
+
+            try {
+                const resposta = await fetch(`${API_URL}/ocorrencias?${params.toString()}`);
+                const dados    = await resposta.json();
+                if (!resposta.ok) throw new Error(dados.erro || 'Erro ao buscar ocorrências');
+
+                // Mapeia campos da API para o formato usado pelas funções de render
+                ocorrencias = dados.map(o => ({
+                    id:               o.id,
+                    titulo:           o.titulo,
+                    descricao:        o.descricao,
+                    endereco:         o.endereco    || '',
+                    bairro:           o.bairro      || '',
+                    status:           o.status,
+                    urgencia:         o.urgencia    || 'medio',
+                    data:             o.data_criacao,
+                    moradorId:        o.id_morador,
+                    moradorNome:      o.morador_nome || 'Não informado',
+                    agenteStatus:     o.observacao_agente   || null,
+                    comentarioInterno: o.comentario_interno || null,
+                    equipe:           o.equipe   || null,
+                    lat:              o.latitude  || -23.207,
+                    lng:              o.longitude || -46.77,
+                }));
+
+                saveData(); // cópia local como fallback
+            } catch (erro) {
+                console.error('Erro ao carregar ocorrências:', erro);
+                showToast('Não foi possível carregar do servidor. Usando dados locais.', 'warning');
+                loadSavedData();
+            }
+        }
+
+        // ============================================
+        // ATUALIZAÇÃO DE STATUS PELO AGENTE — API
+        // ============================================
         function confirmUpdateOccurrence() {
-            showConfirmDialog('Deseja realmente atualizar esta ocorrência? O morador será notificado.', () => {
-                const newStatus = document.getElementById('updateStatus').value;
-                const obs = document.getElementById('updateObs').value;
-                const comentarioInterno = document.getElementById('updateComentarioInterno').value;
-                const equipe = document.getElementById('updateEquipe').value;
-                
-                const occurrence = ocorrencias.find(o => o.id === selectedOccurrenceId);
-                if (occurrence) {
-                    occurrence.status = newStatus;
-                    if (obs) occurrence.agenteStatus = obs;
-                    if (comentarioInterno) occurrence.comentarioInterno = comentarioInterno;
-                    if (equipe) occurrence.equipe = equipe;
-                    saveData();
-                    showToast(`Ocorrência #${selectedOccurrenceId} atualizada para ${getStatusText(newStatus)}`, 'success');
-                    
-                    const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
-                    if (activePage === 'dashboard') {
-                        renderDashboard();
-                    } else if (activePage === 'ocorrencias') {
-                        filterOcorrencias();
-                    } else if (activePage === 'mapas') {
-                        initMapaGeral();
+            showConfirmDialog('Deseja realmente atualizar esta ocorrência? O morador será notificado.', async () => {
+                const novoStatus        = document.getElementById('updateStatus').value;
+                const obs               = document.getElementById('updateObs')?.value           || '';
+                const comentarioInterno = document.getElementById('updateComentarioInterno')?.value || '';
+                const equipe            = document.getElementById('updateEquipe')?.value         || '';
+
+                const dadosAtualizacao = {
+                    status:             novoStatus,
+                    observacao_agente:  obs,
+                    comentario_interno: comentarioInterno,
+                    equipe:             equipe,
+                    id_agente:          currentUser?.id || null,
+                };
+
+                try {
+                    showLoading();
+                    const resposta = await fetch(`${API_URL}/ocorrencias/${selectedOccurrenceId}/status`, {
+                        method:  'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body:    JSON.stringify(dadosAtualizacao),
+                    });
+                    const resultado = await resposta.json();
+                    if (!resposta.ok) throw new Error(resultado.erro || 'Erro ao atualizar status');
+
+                    showToast(`Ocorrência #${selectedOccurrenceId} atualizada para ${getStatusText(novoStatus)}`, 'success');
+
+                    // Atualiza localmente sem rebuscar tudo
+                    const occurrence = ocorrencias.find(o => o.id === selectedOccurrenceId);
+                    if (occurrence) {
+                        occurrence.status            = novoStatus;
+                        occurrence.agenteStatus      = obs;
+                        occurrence.comentarioInterno = comentarioInterno;
+                        occurrence.equipe            = equipe;
+                        saveData();
                     }
+
+                    const activePage = document.querySelector('.tab.active')?.getAttribute('data-page');
+                    if (activePage === 'dashboard')      renderDashboard();
+                    else if (activePage === 'ocorrencias') filterOcorrencias();
+                    else if (activePage === 'mapas')     initMapaGeral();
+
+                } catch (erro) {
+                    showToast(`Erro: ${erro.message}`, 'error');
+                    console.error('Erro ao atualizar status:', erro);
+                } finally {
+                    hideLoading();
+                    closeModal('updateOccurrenceModal');
                 }
-                closeModal('updateOccurrenceModal');
             });
         }
         
@@ -2374,9 +2790,10 @@
         // ============================================
         // INICIALIZAÇÃO
         // ============================================
-        function init() {
+        async function init() {
             if (!loadUser()) return;
-            loadSavedData();
+            loadSavedData(); // carrega localStorage como fallback enquanto a API responde
+            await carregarTodasOcorrencias(); // busca ocorrências reais do backend
             renderDashboard();
             renderMapas();
             renderOcorrencias();
@@ -2385,6 +2802,7 @@
             initBackToTop();
             initConnectionStatus();
             setupKeyboardShortcuts();
+            setupDragAndDropAgente();
         }
         
         init();
